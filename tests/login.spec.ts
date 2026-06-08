@@ -1,23 +1,22 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import dotenv from 'dotenv';
+
+import { LoginPage } from '../pages/login.page';
+import { DashboardPage } from '../pages/dashboard.page';
+import { users } from '../data/users';
 
 dotenv.config();
 
-test('TC_LOGIN_001 - Positive - Valid Login @Positive @Smoke', async ({ page }) => {
-  await page.goto('https://www.emra.chat/login');
-  await page.getByRole('textbox', { name: 'Email' }).click();
-  await page.getByRole('textbox', { name: 'Email' })
-  .fill(process.env.EMAIL!, { force: true });
-  await page.getByRole('textbox', { name: 'Password' }).click();
-  await page.getByRole('textbox', { name: 'Password' })
-  .fill(process.env.PASSWORD!, { force: true });
-  await page.getByRole('button', { name: 'Sign In' }).click();
+test('TC_LOGIN_001 - Valid Login @Smoke', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  const dashboardPage = new DashboardPage(page);
 
-  // Tunggu halaman selesai loading
-  await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: 'Welcome to Emra! 🎉' })).toBeVisible();
-  // Tunggu heading muncul sampai 30 detik
-await expect(
-  page.getByRole('heading', { name: 'Welcome to Emra! 🎉' })
-).toBeVisible({ timeout: 30000 });
+  await loginPage.goto();
+
+  await loginPage.login(
+    users.valid.email,
+    users.valid.password
+  );
+
+  await dashboardPage.verifyDashboardLoaded();
 });
