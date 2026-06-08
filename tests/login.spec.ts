@@ -7,16 +7,37 @@ import { users } from '../data/users';
 
 dotenv.config();
 
-test('TC_LOGIN_001 - Valid Login @Smoke', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  const dashboardPage = new DashboardPage(page);
+test.describe('Login Feature', () => {
+  test(
+    'TC_LOGIN_001 - Positive - Valid Login @Positive @Smoke',
+    async ({ page }) => {
+      const loginPage = new LoginPage(page);
+      const dashboardPage = new DashboardPage(page);
 
-  await loginPage.goto();
+      await loginPage.goto();
 
-  await loginPage.login(
-    users.valid.email,
-    users.valid.password
+      await loginPage.login(
+        users.valid.email,
+        users.valid.password
+      );
+
+      await dashboardPage.verifyDashboardLoaded();
+    }
   );
 
-  await dashboardPage.verifyDashboardLoaded();
+  test(
+    'TC_LOGIN_002 - Negative - Invalid Login @Negative',
+    async ({ page }) => {
+      const loginPage = new LoginPage(page);
+
+      await loginPage.goto();
+
+      await loginPage.login(
+        users.invalid.email,
+        users.invalid.password
+      );
+
+      await loginPage.verifyLoginFailed();
+    }
+  );
 });

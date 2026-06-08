@@ -1,4 +1,4 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 export class LoginPage {
   readonly page: Page;
@@ -31,5 +31,11 @@ export class LoginPage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.signInButton.click();
+  }
+
+  async verifyLoginFailed() {
+    await expect(this.page).toHaveURL(/login/);
+
+    await expect(this.signInButton).toBeVisible();
   }
 }

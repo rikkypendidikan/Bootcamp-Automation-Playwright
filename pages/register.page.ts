@@ -3,17 +3,17 @@ import { expect, Locator, Page } from '@playwright/test';
 export class RegisterPage {
   readonly page: Page;
 
-  // Step 1
+  // Create Account Page
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly confirmPasswordInput: Locator;
   readonly nextButton: Locator;
 
-  // Step 2
+  // User Information Page
   readonly fullNameInput: Locator;
   readonly phoneNumberInput: Locator;
 
-  // Step 3
+  // Company Information Page
   readonly companyNameInput: Locator;
   readonly industryDropdown: Locator;
   readonly companySizeDropdown: Locator;
@@ -30,7 +30,7 @@ export class RegisterPage {
   constructor(page: Page) {
     this.page = page;
 
-    // Step 1
+    // Create Account Page
     this.emailInput = page.getByRole('textbox', {
       name: 'Email',
     });
@@ -48,7 +48,7 @@ export class RegisterPage {
       name: 'Next',
     });
 
-    // Step 2
+    // User Information Page
     this.fullNameInput = page.getByRole('textbox', {
       name: 'Full Name',
     });
@@ -57,7 +57,7 @@ export class RegisterPage {
       name: 'Phone Number',
     });
 
-    // Step 3
+    // Company Information Page
     this.companyNameInput = page.getByRole('textbox', {
       name: 'Company Name',
     });

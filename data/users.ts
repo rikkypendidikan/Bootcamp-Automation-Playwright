@@ -3,4 +3,9 @@ export const users = {
     email: process.env.EMAIL!,
     password: process.env.PASSWORD!,
   },
+
+  invalid: {
+    email: 'invalid@example.com',
+    password: 'InvalidPassword123!',
+  },
 };
