@@ -4,14 +4,17 @@ import { createUser } from '../utils/faker-data';
 import { registerNegativeData } from '../data/register.data';
 
 test.describe('Register Module', () => {
+  let registerPage: RegisterPage;
+
+  test.beforeEach(async ({ page }) => {
+    registerPage = new RegisterPage(page);
+    await registerPage.open();
+  });
+
   test.describe('Positive Cases', () => {
     test(
       'TC_Register_001 - Positive - Valid Register @Positive @Smoke',
-      async ({ page }) => {
-        const registerPage = new RegisterPage(page);
-
-        await registerPage.open();
-
+      async () => {
         const user = createUser();
 
         await registerPage.register(user);
@@ -24,11 +27,7 @@ test.describe('Register Module', () => {
   test.describe('Negative Cases', () => {
     test(
       'TC_Register_002 - Negative - Invalid Email Format @Negative @Regression',
-      async ({ page }) => {
-        const registerPage = new RegisterPage(page);
-
-        await registerPage.open();
-
+      async () => {
         await registerPage.fillAccountInformation(
           registerNegativeData.invalidEmail.email,
           registerNegativeData.invalidEmail.password,
@@ -41,11 +40,7 @@ test.describe('Register Module', () => {
 
     test(
       'TC_Register_003 - Negative - Password Less Than 8 Characters @Negative @Regression',
-      async ({ page }) => {
-        const registerPage = new RegisterPage(page);
-
-        await registerPage.open();
-
+      async () => {
         await registerPage.fillAccountInformation(
           registerNegativeData.invalidPassword.email,
           registerNegativeData.invalidPassword.password,
@@ -58,11 +53,7 @@ test.describe('Register Module', () => {
 
     test(
       'TC_Register_004 - Negative - Password Confirmation Mismatch @Negative @Regression',
-      async ({ page }) => {
-        const registerPage = new RegisterPage(page);
-
-        await registerPage.open();
-
+      async () => {
         await registerPage.fillAccountInformation(
           registerNegativeData.passwordMismatch.email,
           registerNegativeData.passwordMismatch.password,
@@ -75,11 +66,7 @@ test.describe('Register Module', () => {
 
     test(
       'TC_Register_005 - Negative - Multiple Validation Errors @Negative @Regression',
-      async ({ page }) => {
-        const registerPage = new RegisterPage(page);
-
-        await registerPage.open();
-
+      async () => {
         await registerPage.fillAccountInformation(
           registerNegativeData.multipleValidation.email,
           registerNegativeData.multipleValidation.password,
@@ -87,6 +74,49 @@ test.describe('Register Module', () => {
         );
 
         await registerPage.verifyMultipleValidationErrors();
+      }
+    );
+
+    test(
+      'TC_Register_006 - Negative - Full Name Less Than 2 Characters @Negative @Regression',
+      async () => {
+        const user = createUser();
+
+        await registerPage.fillAccountInformation(
+          user.email,
+          user.password,
+          user.confirmPassword
+        );
+
+        await registerPage.goToUserInformation();
+
+        await registerPage.fillUserInformation(
+          registerNegativeData.invalidFullName.fullName,
+          registerNegativeData.invalidFullName.phoneNumber
+        );
+
+        await registerPage.verifyInvalidFullName();
+      }
+    );
+    test(
+      'TC_Register_007 - Negative - Invalid Phone Number @Negative @Regression',
+      async () => {
+        const user = createUser();
+
+        await registerPage.fillAccountInformation(
+          user.email,
+          user.password,
+          user.confirmPassword
+        );
+
+        await registerPage.goToUserInformation();
+
+        await registerPage.fillUserInformation(
+          registerNegativeData.invalidPhoneNumber.fullName,
+          registerNegativeData.invalidPhoneNumber.phoneNumber
+        );
+
+        await registerPage.verifyInvalidPhoneNumber();
       }
     );
   });

@@ -3,34 +3,52 @@ import { expect, Locator, Page } from '@playwright/test';
 export class RegisterPage {
   readonly page: Page;
 
-  // Create Account Page
+  // =====================
+  // Step 1 - Account Information
+  // =====================
+
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly confirmPasswordInput: Locator;
   readonly nextButton: Locator;
 
-  // User Information Page
+  // =====================
+  // Step 2 - User Information
+  // =====================
+
   readonly fullNameInput: Locator;
   readonly phoneNumberInput: Locator;
 
-  // Company Information Page
+  // =====================
+  // Step 3 - Company Information
+  // =====================
+
   readonly companyNameInput: Locator;
   readonly industryDropdown: Locator;
   readonly companySizeDropdown: Locator;
   readonly createAccountButton: Locator;
 
-  // Success Message
+  // =====================
+  // Success Messages
+  // =====================
+
   readonly verifyEmailMessage: Locator;
 
+  // =====================
   // Validation Messages
+  // =====================
+
   readonly invalidEmailMessage: Locator;
   readonly invalidPasswordMessage: Locator;
   readonly passwordMismatchMessage: Locator;
+  readonly invalidFullNameMessage: Locator;
+  readonly invalidPhoneNumberMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    // Create Account Page
+    // Step 1
+
     this.emailInput = page.getByRole('textbox', {
       name: 'Email',
     });
@@ -48,7 +66,8 @@ export class RegisterPage {
       name: 'Next',
     });
 
-    // User Information Page
+    // Step 2
+
     this.fullNameInput = page.getByRole('textbox', {
       name: 'Full Name',
     });
@@ -57,7 +76,8 @@ export class RegisterPage {
       name: 'Phone Number',
     });
 
-    // Company Information Page
+    // Step 3
+
     this.companyNameInput = page.getByRole('textbox', {
       name: 'Company Name',
     });
@@ -71,11 +91,13 @@ export class RegisterPage {
     });
 
     // Success
+
     this.verifyEmailMessage = page.getByText(
       'Please verify your email'
     );
 
     // Validation
+
     this.invalidEmailMessage = page.getByText(
       'Please enter a valid email'
     );
@@ -87,10 +109,78 @@ export class RegisterPage {
     this.passwordMismatchMessage = page.getByText(
       'Passwords do not match'
     );
+
+    this.invalidFullNameMessage = page.getByText(
+      'Name must be at least 2 characters'
+    );
+
+    this.invalidPhoneNumberMessage = page.getByText(
+      'Please enter a valid phone number (9-13 digits)'
+    );
   }
 
   async open() {
     await this.page.goto('https://www.emra.chat/signup');
+  }
+
+  // =====================
+  // Step 1 Actions
+  // =====================
+
+  async fillAccountInformation(
+    email: string,
+    password: string,
+    confirmPassword: string
+  ) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.confirmPasswordInput.fill(confirmPassword);
+
+    await this.confirmPasswordInput.blur();
+  }
+
+  async goToUserInformation() {
+    await this.nextButton.click();
+  }
+
+  // =====================
+  // Step 2 Actions
+  // =====================
+
+  async fillUserInformation(
+    fullName: string,
+    phoneNumber: string
+  ) {
+    await this.fullNameInput.fill(fullName);
+    await this.phoneNumberInput.fill(phoneNumber);
+
+    await this.phoneNumberInput.blur();
+  }
+
+  async submitUserInformation() {
+    await this.nextButton.click();
+  }
+
+  // =====================
+  // Step 3 Actions
+  // =====================
+
+  async fillCompanyInformation(
+    companyName: string
+  ) {
+    await this.companyNameInput.fill(companyName);
+
+    await this.industryDropdown.selectOption(
+      'education'
+    );
+
+    await this.companySizeDropdown.selectOption(
+      '200+'
+    );
+  }
+
+  async submitRegistration() {
+    await this.createAccountButton.click();
   }
 
   // =====================
@@ -105,39 +195,26 @@ export class RegisterPage {
     phoneNumber: string;
     companyName: string;
   }) {
-    await this.emailInput.fill(user.email);
-    await this.passwordInput.fill(user.password);
-    await this.confirmPasswordInput.fill(user.confirmPassword);
+    await this.fillAccountInformation(
+      user.email,
+      user.password,
+      user.confirmPassword
+    );
 
-    await this.nextButton.click();
+    await this.goToUserInformation();
 
-    await this.fullNameInput.fill(user.fullName);
-    await this.phoneNumberInput.fill(user.phoneNumber);
+    await this.fillUserInformation(
+      user.fullName,
+      user.phoneNumber
+    );
 
-    await this.nextButton.click();
+    await this.submitUserInformation();
 
-    await this.companyNameInput.fill(user.companyName);
+    await this.fillCompanyInformation(
+      user.companyName
+    );
 
-    await this.industryDropdown.selectOption('education');
-    await this.companySizeDropdown.selectOption('200+');
-
-    await this.createAccountButton.click();
-  }
-
-  // =====================
-  // Negative Flow
-  // =====================
-
-  async fillAccountInformation(
-    email: string,
-    password: string,
-    confirmPassword: string
-  ) {
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.confirmPasswordInput.fill(confirmPassword);
-
-    await this.confirmPasswordInput.blur();
+    await this.submitRegistration();
   }
 
   // =====================
@@ -164,5 +241,20 @@ export class RegisterPage {
     await expect(this.invalidEmailMessage).toBeVisible();
     await expect(this.invalidPasswordMessage).toBeVisible();
     await expect(this.passwordMismatchMessage).toBeVisible();
+  }
+
+  async verifyInvalidFullName() {
+    await expect(this.invalidFullNameMessage).toBeVisible();
+    await expect(this.nextButton).toBeDisabled();
+  }
+
+  async verifyInvalidPhoneNumber() {
+    await expect(this.nextButton).toBeEnabled();
+
+    await this.nextButton.click();
+
+    await expect(
+      this.invalidPhoneNumberMessage
+    ).toBeVisible();
   }
 }

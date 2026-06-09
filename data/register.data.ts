@@ -22,4 +22,14 @@ export const registerNegativeData = {
     password: '123',
     confirmPassword: '456',
   },
+
+  invalidFullName: {
+    fullName: 'A',
+    phoneNumber: '81234567890',
+  },
+
+  invalidPhoneNumber: {
+    fullName: 'Testing User',
+    phoneNumber: '123',
+  },
 };

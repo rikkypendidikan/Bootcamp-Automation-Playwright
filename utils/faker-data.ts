@@ -1,22 +1,36 @@
 import { faker } from '@faker-js/faker';
 
-function generateStrongPassword(length = 12): string {
+function generateStrongPassword(
+  length = 12
+): string {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const lowercase = 'abcdefghijklmnopqrstuvwxyz';
   const numbers = '0123456789';
   const symbols = '!@#$%^&*';
 
   const required = [
-    faker.helpers.arrayElement(uppercase.split('')),
-    faker.helpers.arrayElement(lowercase.split('')),
-    faker.helpers.arrayElement(numbers.split('')),
-    faker.helpers.arrayElement(symbols.split('')),
+    faker.helpers.arrayElement(
+      uppercase.split('')
+    ),
+    faker.helpers.arrayElement(
+      lowercase.split('')
+    ),
+    faker.helpers.arrayElement(
+      numbers.split('')
+    ),
+    faker.helpers.arrayElement(
+      symbols.split('')
+    ),
   ];
 
-  const remaining = faker.string.alphanumeric(length - 4);
+  const remaining =
+    faker.string.alphanumeric(length - 4);
 
   return faker.helpers
-    .shuffle([...required, ...remaining.split('')])
+    .shuffle([
+      ...required,
+      ...remaining.split(''),
+    ])
     .join('');
 }
 
