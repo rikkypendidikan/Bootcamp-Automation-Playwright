@@ -3,6 +3,9 @@ import { expect, Locator, Page } from '@playwright/test';
 export class LoginPage {
   readonly page: Page;
 
+  /**
+   * Login Form
+   */
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly signInButton: Locator;
@@ -24,10 +27,18 @@ export class LoginPage {
   }
 
   async goto() {
-    await this.page.goto('https://www.emra.chat/login');
+    await this.page.goto(
+      'https://www.emra.chat/login'
+    );
   }
 
-  async login(email: string, password: string) {
+  /**
+   * Login using provided credentials
+   */
+  async login(
+    email: string,
+    password: string
+  ) {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.signInButton.click();
@@ -36,6 +47,8 @@ export class LoginPage {
   async verifyLoginFailed() {
     await expect(this.page).toHaveURL(/login/);
 
-    await expect(this.signInButton).toBeVisible();
+    await expect(
+      this.signInButton
+    ).toBeVisible();
   }
 }

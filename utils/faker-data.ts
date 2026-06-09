@@ -1,11 +1,29 @@
 import { faker } from '@faker-js/faker';
 
-function generateStrongPassword(
-  length = 12
+const PASSWORD_POLICY = {
+  length: 12,
+};
+
+export interface RegisterUser {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phoneNumber: string;
+  companyName: string;
+}
+
+export function generateStrongPassword(
+  length = PASSWORD_POLICY.length
 ): string {
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  const lowercase =
+    'abcdefghijklmnopqrstuvwxyz';
+
   const numbers = '0123456789';
+
   const symbols = '!@#$%^&*';
 
   const required = [
@@ -34,11 +52,12 @@ function generateStrongPassword(
     .join('');
 }
 
-export function createUser() {
-  const password = generateStrongPassword();
+export function createUser(): RegisterUser {
+  const password =
+    generateStrongPassword();
 
   return {
-    email: faker.internet.email(),
+    email: `automation_${Date.now()}@mailinator.com`,
     password,
     confirmPassword: password,
     fullName: faker.person.fullName(),

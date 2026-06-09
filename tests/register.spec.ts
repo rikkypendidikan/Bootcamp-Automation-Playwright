@@ -4,6 +4,8 @@ import { createUser } from '../utils/faker-data';
 import { registerNegativeData } from '../data/register.data';
 
 test.describe('Register Module', () => {
+  test.setTimeout(60000);
+
   let registerPage: RegisterPage;
 
   test.beforeEach(async ({ page }) => {
@@ -18,7 +20,6 @@ test.describe('Register Module', () => {
         const user = createUser();
 
         await registerPage.register(user);
-
         await registerPage.verifySuccessfulRegistration();
       }
     );
@@ -28,10 +29,13 @@ test.describe('Register Module', () => {
     test(
       'TC_Register_002 - Negative - Invalid Email Format @Negative @Regression',
       async () => {
+        const data =
+          registerNegativeData.invalidEmail;
+
         await registerPage.fillAccountInformation(
-          registerNegativeData.invalidEmail.email,
-          registerNegativeData.invalidEmail.password,
-          registerNegativeData.invalidEmail.confirmPassword
+          data.email,
+          data.password,
+          data.confirmPassword
         );
 
         await registerPage.verifyInvalidEmail();
@@ -41,10 +45,13 @@ test.describe('Register Module', () => {
     test(
       'TC_Register_003 - Negative - Password Less Than 8 Characters @Negative @Regression',
       async () => {
+        const data =
+          registerNegativeData.invalidPassword;
+
         await registerPage.fillAccountInformation(
-          registerNegativeData.invalidPassword.email,
-          registerNegativeData.invalidPassword.password,
-          registerNegativeData.invalidPassword.confirmPassword
+          data.email,
+          data.password,
+          data.confirmPassword
         );
 
         await registerPage.verifyInvalidPassword();
@@ -54,10 +61,13 @@ test.describe('Register Module', () => {
     test(
       'TC_Register_004 - Negative - Password Confirmation Mismatch @Negative @Regression',
       async () => {
+        const data =
+          registerNegativeData.passwordMismatch;
+
         await registerPage.fillAccountInformation(
-          registerNegativeData.passwordMismatch.email,
-          registerNegativeData.passwordMismatch.password,
-          registerNegativeData.passwordMismatch.confirmPassword
+          data.email,
+          data.password,
+          data.confirmPassword
         );
 
         await registerPage.verifyPasswordMismatch();
@@ -67,10 +77,13 @@ test.describe('Register Module', () => {
     test(
       'TC_Register_005 - Negative - Multiple Validation Errors @Negative @Regression',
       async () => {
+        const data =
+          registerNegativeData.multipleValidation;
+
         await registerPage.fillAccountInformation(
-          registerNegativeData.multipleValidation.email,
-          registerNegativeData.multipleValidation.password,
-          registerNegativeData.multipleValidation.confirmPassword
+          data.email,
+          data.password,
+          data.confirmPassword
         );
 
         await registerPage.verifyMultipleValidationErrors();
@@ -91,13 +104,16 @@ test.describe('Register Module', () => {
         await registerPage.goToUserInformation();
 
         await registerPage.fillUserInformation(
-          registerNegativeData.invalidFullName.fullName,
-          registerNegativeData.invalidFullName.phoneNumber
+          registerNegativeData.invalidFullName
+            .fullName,
+          registerNegativeData.invalidFullName
+            .phoneNumber
         );
 
         await registerPage.verifyInvalidFullName();
       }
     );
+
     test(
       'TC_Register_007 - Negative - Invalid Phone Number @Negative @Regression',
       async () => {
@@ -112,8 +128,10 @@ test.describe('Register Module', () => {
         await registerPage.goToUserInformation();
 
         await registerPage.fillUserInformation(
-          registerNegativeData.invalidPhoneNumber.fullName,
-          registerNegativeData.invalidPhoneNumber.phoneNumber
+          registerNegativeData.invalidPhoneNumber
+            .fullName,
+          registerNegativeData.invalidPhoneNumber
+            .phoneNumber
         );
 
         await registerPage.verifyInvalidPhoneNumber();

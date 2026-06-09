@@ -7,12 +7,15 @@ import { users } from '../data/users';
 
 dotenv.config();
 
-test.describe('Login Feature', () => {
+test.describe('Login Module', () => {
   test(
-    'TC_LOGIN_001 - Positive - Valid Login @Positive @Smoke',
+    'TC_LOGIN_001 - Positive - Valid Login @Login @Positive @Smoke',
     async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      const dashboardPage = new DashboardPage(page);
+      const loginPage =
+        new LoginPage(page);
+
+      const dashboardPage =
+        new DashboardPage(page);
 
       await loginPage.goto();
 
@@ -26,9 +29,10 @@ test.describe('Login Feature', () => {
   );
 
   test(
-    'TC_LOGIN_002 - Negative - Invalid Login @Negative',
+    'TC_LOGIN_002 - Negative - Invalid Login @Login @Negative',
     async ({ page }) => {
-      const loginPage = new LoginPage(page);
+      const loginPage =
+        new LoginPage(page);
 
       await loginPage.goto();
 

@@ -1,4 +1,9 @@
+/**
+ * Negative test data for Register Module
+ */
 export const registerNegativeData = {
+  // Step 1 - Account Information
+
   invalidEmail: {
     email: 'invalid-email',
     password: 'Testing123!',
@@ -23,6 +28,8 @@ export const registerNegativeData = {
     confirmPassword: '456',
   },
 
+  // Step 2 - User Information
+
   invalidFullName: {
     fullName: 'A',
     phoneNumber: '81234567890',
@@ -32,4 +39,4 @@ export const registerNegativeData = {
     fullName: 'Testing User',
     phoneNumber: '123',
   },
-};
+} as const;
