@@ -10,6 +10,8 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    container:
+      image: kydockertest/bootcamp-automation-playwright:base
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
