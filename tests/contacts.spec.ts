@@ -1,40 +1,115 @@
-import { test } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import dotenv from 'dotenv';
 
-import { LoginPage } from '../pages/login.page';
-import { ContactsPage } from '../pages/contacts.page';
-import { users } from '../data/users';
 import { createContact } from '../data/contact.data';
+import { users } from '../data/users';
+
+import { ContactsPage } from '../pages/contacts.page';
+import { LoginPage } from '../pages/login.page';
 
 dotenv.config();
 
 test.describe('All Contacts Module', () => {
   test.setTimeout(60000);
 
-  test('TC_CONTACT_001 - Create Contact Successfully @Contacts @Positive @Smoke', async ({ page }) => {
+  /**
+   * Shared login helper
+   *
+   * Login dan navigate ke Contacts page.
+   */
+  async function loginAndGo(
+    page: Page
+  ): Promise<ContactsPage> {
     const loginPage = new LoginPage(page);
     const contactsPage = new ContactsPage(page);
 
-    // generate dynamic test data
-    const contactData = createContact();
-
-    // 1. Login
     await loginPage.goto();
-    await loginPage.login(users.valid.email, users.valid.password);
 
-    // 2. Go to All Contacts page
+    await loginPage.login(
+      users.valid.email,
+      users.valid.password
+    );
+
     await contactsPage.goToAllContacts();
 
-    // 3. Open create contact form
-    await contactsPage.openCreateContactForm();
+    return contactsPage;
+  }
 
-    // 4. Fill form with faker data
-    await contactsPage.fillContactForm(contactData);
+  /**
+   * TC_CONTACT_001
+   *
+   * Verify user can create contact successfully.
+   */
+  test(
+    'TC_CONTACT_001 - Positive - Create Contact Successfully @Contacts @Positive @Smoke @Regression',
+    async ({ page }) => {
+      const contactsPage =
+        await loginAndGo(page);
 
-    // 5. Submit contact
-    await contactsPage.createContact();
+      const contactData =
+        createContact();
 
-    // 6. Verify success state
-    await contactsPage.verifyContactCreated();
-  });
+      await contactsPage.openCreateContactForm();
+
+      await contactsPage.fillContactForm(
+        contactData
+      );
+
+      await contactsPage.createContact();
+    }
+  );
+
+  /**
+   * TC_CONTACT_002
+   *
+   * Verify user can edit contact successfully.
+   */
+  test(
+    'TC_CONTACT_002 - Positive - Edit Contact Successfully @Contacts @Positive @Regression',
+    async ({ page }) => {
+      const contactsPage =
+        await loginAndGo(page);
+
+      const contactData =
+        createContact();
+
+      await contactsPage.openCreateContactForm();
+
+      await contactsPage.fillContactForm(
+        contactData
+      );
+
+      await contactsPage.createContact();
+
+      await contactsPage.editFirstContact(
+        `${contactData.name} EDIT`
+      );
+    }
+  );
+
+  /**
+   * TC_CONTACT_003
+   *
+   * Verify user can delete contact successfully.
+   */
+  test(
+    'TC_CONTACT_003 - Positive - Delete Contact Successfully @Contacts @Positive @Regression',
+    async ({ page }) => {
+      const contactsPage =
+        await loginAndGo(page);
+
+      const contactData =
+        createContact();
+
+      await contactsPage.openCreateContactForm();
+
+      await contactsPage.fillContactForm(
+        contactData
+      );
+
+      await contactsPage.createContact();
+
+      await contactsPage.deleteFirstContact();
+    }
+  );
 });
