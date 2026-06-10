@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: kydockertest/bootcamp-automation-playwright:base
+      options: --user root
 
     env:
       EMAIL: ${{ secrets.EMAIL }}
