@@ -1,4 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+
+// Load environment berdasarkan NODE_ENV
+const envFile =
+  process.env.NODE_ENV === 'staging'
+    ? '.env.staging'
+    : '.env.production';
+
+dotenv.config({ path: envFile });
 
 export default defineConfig({
   testDir: './tests',
@@ -23,11 +32,11 @@ export default defineConfig({
   ],
 
   use: {
-    actionTimeout: 10000,
+    baseURL: process.env.BASE_URL,
 
+    actionTimeout: 10000,
     navigationTimeout: 30000,
 
-    // Capture artifacts when test fails
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -43,23 +52,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
-
-    // {
-    //   name: 'firefox',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //   },
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //   },
-    // },
   ],
 });

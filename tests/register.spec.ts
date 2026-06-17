@@ -15,7 +15,7 @@ test.describe('Register Module', () => {
 
   test.describe('Positive Cases', () => {
     test(
-      'TC_Register_001 - Positive - Valid Register @Positive @Smoke',
+      'TC_REGISTER_001 - Positive - Successfully register new account @Register @Positive @Smoke @Regression',
       async () => {
         const user = createUser();
 
@@ -27,10 +27,9 @@ test.describe('Register Module', () => {
 
   test.describe('Negative Cases', () => {
     test(
-      'TC_Register_002 - Negative - Invalid Email Format @Negative @Regression',
+      'TC_REGISTER_002 - Negative - Invalid email format should show validation @Register @Negative @Regression',
       async () => {
-        const data =
-          registerNegativeData.invalidEmail;
+        const data = registerNegativeData.invalidEmail;
 
         await registerPage.fillAccountInformation(
           data.email,
@@ -43,10 +42,9 @@ test.describe('Register Module', () => {
     );
 
     test(
-      'TC_Register_003 - Negative - Password Less Than 8 Characters @Negative @Regression',
+      'TC_REGISTER_003 - Negative - Password less than 8 characters should fail @Register @Negative @Regression',
       async () => {
-        const data =
-          registerNegativeData.invalidPassword;
+        const data = registerNegativeData.invalidPassword;
 
         await registerPage.fillAccountInformation(
           data.email,
@@ -59,10 +57,9 @@ test.describe('Register Module', () => {
     );
 
     test(
-      'TC_Register_004 - Negative - Password Confirmation Mismatch @Negative @Regression',
+      'TC_REGISTER_004 - Negative - Password confirmation mismatch should fail @Register @Negative @Regression',
       async () => {
-        const data =
-          registerNegativeData.passwordMismatch;
+        const data = registerNegativeData.passwordMismatch;
 
         await registerPage.fillAccountInformation(
           data.email,
@@ -75,10 +72,9 @@ test.describe('Register Module', () => {
     );
 
     test(
-      'TC_Register_005 - Negative - Multiple Validation Errors @Negative @Regression',
+      'TC_REGISTER_005 - Negative - Multiple validation errors should be shown @Register @Negative @Regression',
       async () => {
-        const data =
-          registerNegativeData.multipleValidation;
+        const data = registerNegativeData.multipleValidation;
 
         await registerPage.fillAccountInformation(
           data.email,
@@ -91,7 +87,7 @@ test.describe('Register Module', () => {
     );
 
     test(
-      'TC_Register_006 - Negative - Full Name Less Than 2 Characters @Negative @Regression',
+      'TC_REGISTER_006 - Negative - Full name too short should fail @Register @Negative @Regression',
       async () => {
         const user = createUser();
 
@@ -104,10 +100,8 @@ test.describe('Register Module', () => {
         await registerPage.goToUserInformation();
 
         await registerPage.fillUserInformation(
-          registerNegativeData.invalidFullName
-            .fullName,
-          registerNegativeData.invalidFullName
-            .phoneNumber
+          registerNegativeData.invalidFullName.fullName,
+          registerNegativeData.invalidFullName.phoneNumber
         );
 
         await registerPage.verifyInvalidFullName();
@@ -115,7 +109,7 @@ test.describe('Register Module', () => {
     );
 
     test(
-      'TC_Register_007 - Negative - Invalid Phone Number @Negative @Regression',
+      'TC_REGISTER_007 - Negative - Invalid phone number should fail @Register @Negative @Regression',
       async () => {
         const user = createUser();
 
@@ -128,10 +122,8 @@ test.describe('Register Module', () => {
         await registerPage.goToUserInformation();
 
         await registerPage.fillUserInformation(
-          registerNegativeData.invalidPhoneNumber
-            .fullName,
-          registerNegativeData.invalidPhoneNumber
-            .phoneNumber
+          registerNegativeData.invalidPhoneNumber.fullName,
+          registerNegativeData.invalidPhoneNumber.phoneNumber
         );
 
         await registerPage.verifyInvalidPhoneNumber();

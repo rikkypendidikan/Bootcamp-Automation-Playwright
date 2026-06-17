@@ -232,24 +232,16 @@ export class ContactsPage {
       .filter({ hasText: /^$/ })
       .first();
 
-    this.page.once(
-      'dialog',
-      async dialog => {
-        await dialog.accept();
-      }
-    );
+    this.page.once('dialog', async dialog => {
+      await dialog.accept();
+    });
 
     await deleteButton.click();
 
-    await this.page
-      .getByRole('button', {
-        name: 'Delete',
-      })
-      .click();
+    await this.page.getByRole('button', { name: 'Delete' }).click();
 
-    await this.page.goto(
-      'https://www.emra.chat/contacts'
-    );
+    // FIX: jangan hardcode URL
+    await this.page.goto('/contacts');
 
     await this.verifyContactsPageLoaded();
   }
