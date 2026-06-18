@@ -57,6 +57,16 @@ jobs:
 
           echo "✅ Environment Loaded"
 
+      # =========================================================
+      # TEST TELEGRAM CONNECTION
+      # Hanya untuk memastikan Bot Token & Chat ID sudah benar
+      # =========================================================
+      - name: Test Telegram Notification
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="✅ GitHub Actions berhasil terhubung dengan Telegram!"
+
       - name: Run Playwright Test
         run: npx playwright test --workers=1
 
