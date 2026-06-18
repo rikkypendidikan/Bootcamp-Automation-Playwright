@@ -3,12 +3,17 @@ export function formatTelegramReport(data: {
   passed: number;
   failed: number;
   skipped?: number;
+  duration?: number;
   environment: string;
   trigger: string;
   branch: string;
   workflowUrl: string;
+  errors?: string;
 }) {
-  const status = data.failed === 0 ? '✅ PASSED' : '❌ FAILED';
+  const status =
+    data.failed === 0
+      ? '✅ PASSED'
+      : '❌ FAILED';
 
   return `
 🚀 ${data.title ?? 'EMRA AUTOMATION'}
@@ -22,6 +27,13 @@ ${status}
 ✅ Passed : ${data.passed}
 ❌ Failed : ${data.failed}
 ⚪ Skipped : ${data.skipped ?? 0}
+⏱ Duration : ${data.duration ?? 0}s
+
+━━━━━━━━━━━━━━━━━━
+
+❌ Errors
+
+${data.errors ?? 'Tidak ada error'}
 
 ━━━━━━━━━━━━━━━━━━
 
