@@ -2,56 +2,67 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
+
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
-    timeout-minutes: 60
     runs-on: ubuntu-latest
+
+    timeout-minutes: 60
 
     container:
       image: kydockertest/bootcamp-automation-playwright:base
       options: --user root
 
     env:
-      # =========================
-      # BASE ENV (JANGAN production di level global install)
-      # =========================
       NODE_ENV: production
-      PRODUCTION_BASE_URL: https://www.emra.chat
+
+      # Mapping GitHub Secrets -> Environment Variable
+      PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
+      PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
+      PRODUCTION_PASSWORD: ${{ secrets.PASSWORD_EMRA_PROD }}
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # =========================
-      # INSTALL DEPENDENCIES (FIXED)
-      # =========================
       - name: Install dependencies
         env:
-          NODE_ENV: development   # 🔥 INI KUNCI FIX
+          NODE_ENV: development
         run: npm ci
 
-      # =========================
-      # INSTALL PLAYWRIGHT BROWSER
-      # =========================
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      # =========================
-      # RUN TESTS
-      # =========================
-      - name: Run Playwright tests
+      - name: Verify Environment
+        run: |
+          echo "NODE_ENV=$NODE_ENV"
+
+          if [ -z "$PRODUCTION_BASE_URL" ]; then
+            echo "❌ PRODUCTION_BASE_URL kosong"
+            exit 1
+          fi
+
+          if [ -z "$PRODUCTION_EMAIL" ]; then
+            echo "❌ PRODUCTION_EMAIL kosong"
+            exit 1
+          fi
+
+          if [ -z "$PRODUCTION_PASSWORD" ]; then
+            echo "❌ PRODUCTION_PASSWORD kosong"
+            exit 1
+          fi
+
+          echo "✅ Environment Loaded"
+
+      - name: Run Playwright Test
         run: npx playwright test --workers=1
 
-      # =========================
-      # UPLOAD REPORT
-      # =========================
       - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/

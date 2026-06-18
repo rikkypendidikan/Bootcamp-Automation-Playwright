@@ -3,38 +3,23 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// =========================================================
-// 🌍 ENVIRONMENT DETECTION
-// =========================================================
 const env = process.env.NODE_ENV || 'local';
 
-// =========================================================
-// 🔗 BASE URL RESOLVER
-// =========================================================
-const baseURL = (() => {
-  switch (env) {
-    case 'local':
-      return process.env.LOCAL_BASE_URL;
-    case 'staging':
-      return process.env.STAGING_BASE_URL;
-    case 'production':
-      return process.env.PRODUCTION_BASE_URL;
-    default:
-      return process.env.LOCAL_BASE_URL;
-  }
-})();
+const baseURL =
+  env === 'production'
+    ? process.env.PRODUCTION_BASE_URL
+    : env === 'staging'
+    ? process.env.STAGING_BASE_URL
+    : process.env.LOCAL_BASE_URL;
 
 if (!baseURL) {
-  throw new Error(`❌ BASE_URL tidak ditemukan untuk environment: ${env}`);
+  throw new Error(`❌ BASE_URL untuk "${env}" tidak ditemukan.`);
 }
 
-// =========================================================
-// 🎭 PLAYWRIGHT CONFIG
-// =========================================================
 export default defineConfig({
   testDir: './tests',
 
-  timeout: 30 * 1000,
+  timeout: 30000,
 
   expect: {
     timeout: 5000,
@@ -42,12 +27,9 @@ export default defineConfig({
 
   fullyParallel: true,
 
-  retries: 2, // 🔁 retry kalau gagal (CI lebih stabil)
+  retries: 2,
 
-  reporter: [
-    ['html'],
-    ['list']
-  ],
+  reporter: [['html'], ['list']],
 
   use: {
     baseURL,
