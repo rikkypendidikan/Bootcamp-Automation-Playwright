@@ -13,7 +13,7 @@ const env =
   'local';
 
 /**
- * Mapping Base URL
+ * Mapping Base URL berdasarkan environment
  */
 const baseURL =
   env === 'production'
@@ -22,6 +22,9 @@ const baseURL =
       ? process.env.STAGING_BASE_URL
       : process.env.LOCAL_BASE_URL;
 
+/**
+ * Hentikan test jika Base URL tidak ditemukan
+ */
 if (!baseURL) {
   throw new Error(
     `❌ BASE_URL untuk environment "${env}" tidak ditemukan.`,

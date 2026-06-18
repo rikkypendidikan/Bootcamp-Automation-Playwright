@@ -23,7 +23,7 @@ export class LoginPage {
     this.emailInput = page.getByRole('textbox', { name: 'Email' });
 
     // Input password user
-    this.passwordInput = page.getByRole('textbox', { name: 'Passwords' });
+    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
 
     // Tombol login utama
     this.signInButton = page.getByRole('button', { name: 'Sign In' });
