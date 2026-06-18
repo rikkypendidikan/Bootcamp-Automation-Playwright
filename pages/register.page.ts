@@ -60,7 +60,7 @@ export class RegisterPage {
     this.page = page;
 
     // STEP 1
-    this.emailInput = page.getByRole('textbox', { name: 'Email' });
+    this.emailInput = page.getByRole('textbox', { name: 'EmailS' });
     this.passwordInput = page.getByRole('textbox', {
       name: 'Password',
       exact: true,
