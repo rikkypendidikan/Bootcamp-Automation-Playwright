@@ -1,21 +1,25 @@
 import { expect, Locator, Page } from '@playwright/test';
 
 /**
- * Dashboard Page Object Model
- * Digunakan setelah user berhasil login
+ * =========================
+ * DASHBOARD PAGE OBJECT
+ * =========================
+ * Validasi halaman setelah login sukses
  */
+
 export class DashboardPage {
   readonly welcomeHeading: Locator;
 
   constructor(page: Page) {
-    // Elemen utama untuk memastikan dashboard sudah terbuka
+
+    // Heading utama dashboard sebagai indikator login berhasil
     this.welcomeHeading = page.getByRole('heading', {
       name: 'Welcome to Emra! 🎉',
     });
   }
 
   /**
-   * Validasi bahwa user sudah masuk ke dashboard
+   * Validasi dashboard berhasil terbuka
    */
   async verifyDashboardLoaded() {
     await expect(this.welcomeHeading).toBeVisible({

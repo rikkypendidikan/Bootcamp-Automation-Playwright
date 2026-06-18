@@ -4,31 +4,43 @@ import { createUser } from '../utils/faker-data';
 import { registerNegativeData } from '../data/register.data';
 
 test.describe('Register Module', () => {
+
   test.setTimeout(60000);
 
   let registerPage: RegisterPage;
 
+  /**
+   * =========================
+   * SETUP SEBELUM TEST
+   * =========================
+   * Membuka halaman register setiap test berjalan
+   */
   test.beforeEach(async ({ page }) => {
     registerPage = new RegisterPage(page);
     await registerPage.open();
   });
 
   test.describe('Positive Cases', () => {
+
     test(
       'TC_REGISTER_001 - Positive - Successfully register new account @Register @Positive @Smoke @Regression',
       async () => {
+
         const user = createUser();
 
         await registerPage.register(user);
+
         await registerPage.verifySuccessfulRegistration();
       }
     );
   });
 
   test.describe('Negative Cases', () => {
+
     test(
       'TC_REGISTER_002 - Negative - Invalid email format should show validation @Register @Negative @Regression',
       async () => {
+
         const data = registerNegativeData.invalidEmail;
 
         await registerPage.fillAccountInformation(
@@ -44,6 +56,7 @@ test.describe('Register Module', () => {
     test(
       'TC_REGISTER_003 - Negative - Password less than 8 characters should fail @Register @Negative @Regression',
       async () => {
+
         const data = registerNegativeData.invalidPassword;
 
         await registerPage.fillAccountInformation(
@@ -59,6 +72,7 @@ test.describe('Register Module', () => {
     test(
       'TC_REGISTER_004 - Negative - Password confirmation mismatch should fail @Register @Negative @Regression',
       async () => {
+
         const data = registerNegativeData.passwordMismatch;
 
         await registerPage.fillAccountInformation(
@@ -74,6 +88,7 @@ test.describe('Register Module', () => {
     test(
       'TC_REGISTER_005 - Negative - Multiple validation errors should be shown @Register @Negative @Regression',
       async () => {
+
         const data = registerNegativeData.multipleValidation;
 
         await registerPage.fillAccountInformation(
@@ -89,6 +104,7 @@ test.describe('Register Module', () => {
     test(
       'TC_REGISTER_006 - Negative - Full name too short should fail @Register @Negative @Regression',
       async () => {
+
         const user = createUser();
 
         await registerPage.fillAccountInformation(
@@ -111,6 +127,7 @@ test.describe('Register Module', () => {
     test(
       'TC_REGISTER_007 - Negative - Invalid phone number should fail @Register @Negative @Regression',
       async () => {
+
         const user = createUser();
 
         await registerPage.fillAccountInformation(

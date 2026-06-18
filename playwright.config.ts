@@ -1,54 +1,134 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-// Load environment berdasarkan NODE_ENV
-const envFile =
-  process.env.NODE_ENV === 'staging'
-    ? '.env.staging'
-    : '.env.production';
+/**
+ * =========================================================
+ * LOAD ENV FILE (.env)
+ * =========================================================
+ * Semua konfigurasi environment (local, staging, production)
+ * disimpan di file .env agar tidak hardcode di kode
+ */
+dotenv.config();
 
-dotenv.config({ path: envFile });
+/**
+ * =========================================================
+ * MENENTUKAN ENVIRONMENT AKTIF
+ * =========================================================
+ * Default: 'local' jika NODE_ENV tidak diset
+ */
+const env = process.env.NODE_ENV || 'local';
 
+/**
+ * =========================================================
+ * BASE URL SELECTION (AMANKAN SEMUA ENV)
+ * =========================================================
+ * Memilih URL berdasarkan environment aktif
+ * - production → https://www.emra.chat
+ * - staging → staging URL
+ * - local → localhost
+ */
+const baseURL =
+  env === 'staging'
+    ? process.env.STAGING_BASE_URL
+    : env === 'production'
+      ? process.env.PROD_BASE_URL
+      : process.env.LOCAL_BASE_URL || 'http://localhost:3000';
+
+/**
+ * =========================================================
+ * VALIDASI BASE URL
+ * =========================================================
+ * Jika baseURL kosong, hentikan test agar error lebih jelas
+ */
+if (!baseURL) {
+  throw new Error(
+    `BASE_URL tidak ditemukan untuk environment: ${env}. Cek file .env kamu!`
+  );
+}
+
+/**
+ * =========================================================
+ * PLAYWRIGHT CONFIGURATION
+ * =========================================================
+ */
 export default defineConfig({
   testDir: './tests',
 
+  /**
+   * Jalankan test secara paralel (lebih cepat)
+   */
   fullyParallel: true,
 
-  forbidOnly: !!process.env.CI,
+  /**
+   * Retry jika test gagal (stabil untuk CI/CD)
+   */
+  retries: 2,
 
-  retries: process.env.CI ? 2 : 0,
-
-  workers: process.env.CI ? 1 : undefined,
-
+  /**
+   * Timeout global semua test
+   */
   timeout: 60000,
 
+  /**
+   * Timeout untuk expect assertion
+   */
   expect: {
     timeout: 10000,
   },
 
-  reporter: [
-    ['html'],
-    ['allure-playwright'],
-  ],
+  /**
+   * Reporter hasil test
+   */
+  reporter: [['html'], ['allure-playwright']],
 
+  /**
+   * =========================================================
+   * CONFIG GLOBAL UNTUK SEMUA TEST
+   * =========================================================
+   */
   use: {
-    baseURL: process.env.BASE_URL,
+    /**
+     * Base URL untuk page.goto('/path')
+     * Contoh: /signup → https://www.emra.chat/signup
+     */
+    baseURL,
 
-    actionTimeout: 10000,
-    navigationTimeout: 30000,
-
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
+    /**
+     * Debugging tools
+     */
+    trace: 'on-first-retry',
     video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
 
     ignoreHTTPSErrors: true,
 
+    /**
+     * Ukuran browser
+     */
     viewport: {
       width: 1920,
       height: 1080,
     },
   },
 
+  /**
+   * =========================================================
+   * WEB SERVER
+   * =========================================================
+   * ❗ DIHAPUS / DINONAKTIFKAN
+   *
+   * Alasan:
+   * - Kamu pakai production URL (bukan localhost)
+   * - Tidak perlu menjalankan npm run dev
+   * - Menghindari error "connection refused"
+   */
+  webServer: undefined,
+
+  /**
+   * =========================================================
+   * BROWSER SETUP
+   * =========================================================
+   */
   projects: [
     {
       name: 'chromium',

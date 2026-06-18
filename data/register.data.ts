@@ -1,8 +1,16 @@
 /**
- * Negative test data for Register Module
+ * =========================
+ * NEGATIVE TEST DATA REGISTER MODULE
+ * =========================
+ * File ini hanya berisi data invalid untuk testing validasi sistem
+ * Tidak ada logic di sini agar mudah maintenance
  */
+
 export const registerNegativeData = {
-  // Step 1 - Account Information
+
+  // =========================
+  // STEP 1 - ACCOUNT VALIDATION
+  // =========================
 
   invalidEmail: {
     email: 'invalid-email',
@@ -28,7 +36,9 @@ export const registerNegativeData = {
     confirmPassword: '456',
   },
 
-  // Step 2 - User Information
+  // =========================
+  // STEP 2 - USER VALIDATION
+  // =========================
 
   invalidFullName: {
     fullName: 'A',

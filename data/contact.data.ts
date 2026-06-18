@@ -1,9 +1,15 @@
 import { faker } from '@faker-js/faker';
 
 /**
- * Generate test data untuk Contact module
- * Semua data dibuat dynamic agar tidak duplicate saat test berjalan paralel
+ * =========================
+ * CONTACT DATA GENERATOR
+ * =========================
+ * Semua data dibuat dynamic agar:
+ * - Tidak duplicate saat parallel test
+ * - Lebih realistis seperti data production
+ * - Tidak bergantung pada static value
  */
+
 export interface ContactData {
   name: string;
   primaryEmail: string;
@@ -18,10 +24,18 @@ export function createContact(): ContactData {
 
   return {
     name,
+
+    // Email utama contact
     primaryEmail: faker.internet.email(),
+
+    // Format nomor Indonesia (08xxxxxxxxxx)
     primaryPhone: `08${faker.string.numeric(10)}`,
+
+    // Data tambahan contact
     additionalPhone: `08${faker.string.numeric(10)}`,
     additionalEmail: faker.internet.email(),
+
+    // Tags digunakan untuk segmentasi contact
     tags: faker.word.sample(),
   };
 }

@@ -1,10 +1,11 @@
-import { Page, test } from '@playwright/test';
+import { test, Page, expect } from '@playwright/test';
 import { createContact } from '../data/contact.data';
-import { users } from '../data/users';
+import { users } from '../utils/users';
 import { ContactsPage } from '../pages/contacts.page';
 import { LoginPage } from '../pages/login.page';
 
 test.describe('Contacts Module', () => {
+
   test.setTimeout(60000);
 
   /**
@@ -25,18 +26,22 @@ test.describe('Contacts Module', () => {
   test(
     'TC_CONTACT_001 - Positive - Create Contact Successfully @Contacts @Positive @Smoke @Regression',
     async ({ page }) => {
+
       const contactsPage = await loginAndGo(page);
       const contact = createContact();
 
       await contactsPage.openCreateContactForm();
       await contactsPage.fillContactForm(contact);
       await contactsPage.createContact();
+
+      await expect(contactsPage.contactsSubtitle).toBeVisible();
     }
   );
 
   test(
     'TC_CONTACT_002 - Positive - Edit Contact Successfully @Contacts @Positive @Regression',
     async ({ page }) => {
+
       const contactsPage = await loginAndGo(page);
       const contact = createContact();
 
@@ -45,12 +50,15 @@ test.describe('Contacts Module', () => {
       await contactsPage.createContact();
 
       await contactsPage.editFirstContact(`${contact.name} EDIT`);
+
+      await expect(contactsPage.contactsSubtitle).toBeVisible();
     }
   );
 
   test(
     'TC_CONTACT_003 - Positive - Delete Contact Successfully @Contacts @Positive @Regression',
     async ({ page }) => {
+
       const contactsPage = await loginAndGo(page);
       const contact = createContact();
 
@@ -59,6 +67,9 @@ test.describe('Contacts Module', () => {
       await contactsPage.createContact();
 
       await contactsPage.deleteFirstContact();
+
+      await expect(contactsPage.contactsSubtitle).toBeVisible();
     }
   );
+
 });
