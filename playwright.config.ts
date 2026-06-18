@@ -3,108 +3,100 @@ import dotenv from 'dotenv';
 
 /**
  * =========================================================
- * LOAD ENV FILE (.env)
+ * LOAD ENV (.env) - ONLY FOR LOCAL DEVELOPMENT
  * =========================================================
- * Semua konfigurasi environment (local, staging, production)
- * disimpan di file .env agar tidak hardcode di kode
+ * Di CI (GitHub Actions), file .env biasanya tidak dipakai
+ * jadi kita hanya load dotenv di local saja
  */
-dotenv.config();
+if (!process.env.CI) {
+  dotenv.config();
+}
 
 /**
  * =========================================================
- * MENENTUKAN ENVIRONMENT AKTIF
+ * ENVIRONMENT DETECTION
  * =========================================================
- * Default: 'local' jika NODE_ENV tidak diset
+ * CI → production (default aman untuk pipeline)
+ * local → pakai NODE_ENV dari .env
  */
-const env = process.env.NODE_ENV || 'local';
+const env = process.env.NODE_ENV || (process.env.CI ? 'production' : 'local');
 
 /**
  * =========================================================
- * BASE URL SELECTION (AMANKAN SEMUA ENV)
+ * BASE URL SELECTION
  * =========================================================
- * Memilih URL berdasarkan environment aktif
- * - production → https://www.emra.chat
- * - staging → staging URL
- * - local → localhost
+ * Mengambil URL berdasarkan environment aktif
+ *
+ * LOCAL      → LOCAL_BASE_URL
+ * STAGING    → STAGING_BASE_URL
+ * PRODUCTION → PROD_BASE_URL
  */
 const baseURL =
   env === 'staging'
     ? process.env.STAGING_BASE_URL
     : env === 'production'
       ? process.env.PROD_BASE_URL
-      : process.env.LOCAL_BASE_URL || 'http://localhost:3000';
+      : process.env.LOCAL_BASE_URL;
 
 /**
  * =========================================================
- * VALIDASI BASE URL
+ * SAFETY CHECK (FAIL FAST)
  * =========================================================
- * Jika baseURL kosong, hentikan test agar error lebih jelas
+ * Jika baseURL tidak ada → langsung error jelas di CI
  */
 if (!baseURL) {
   throw new Error(
-    `BASE_URL tidak ditemukan untuk environment: ${env}. Cek file .env kamu!`
+    `❌ BASE_URL tidak ditemukan untuk environment: ${env}`
   );
 }
 
 /**
  * =========================================================
- * PLAYWRIGHT CONFIGURATION
+ * PLAYWRIGHT CONFIG
  * =========================================================
  */
 export default defineConfig({
   testDir: './tests',
 
   /**
-   * Jalankan test secara paralel (lebih cepat)
+   * Jalankan test paralel
    */
   fullyParallel: true,
 
   /**
-   * Retry jika test gagal (stabil untuk CI/CD)
+   * Retry untuk CI agar lebih stabil
    */
-  retries: 2,
+  retries: process.env.CI ? 2 : 0,
 
   /**
-   * Timeout global semua test
+   * Timeout global test
    */
   timeout: 60000,
 
   /**
-   * Timeout untuk expect assertion
+   * Assertion timeout
    */
   expect: {
     timeout: 10000,
   },
 
   /**
-   * Reporter hasil test
+   * Reporter
    */
   reporter: [['html'], ['allure-playwright']],
 
   /**
-   * =========================================================
-   * CONFIG GLOBAL UNTUK SEMUA TEST
-   * =========================================================
+   * GLOBAL TEST CONFIG
    */
   use: {
-    /**
-     * Base URL untuk page.goto('/path')
-     * Contoh: /signup → https://www.emra.chat/signup
-     */
     baseURL,
 
-    /**
-     * Debugging tools
-     */
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
 
     ignoreHTTPSErrors: true,
 
-    /**
-     * Ukuran browser
-     */
     viewport: {
       width: 1920,
       height: 1080,
@@ -112,22 +104,7 @@ export default defineConfig({
   },
 
   /**
-   * =========================================================
-   * WEB SERVER
-   * =========================================================
-   * ❗ DIHAPUS / DINONAKTIFKAN
-   *
-   * Alasan:
-   * - Kamu pakai production URL (bukan localhost)
-   * - Tidak perlu menjalankan npm run dev
-   * - Menghindari error "connection refused"
-   */
-  webServer: undefined,
-
-  /**
-   * =========================================================
-   * BROWSER SETUP
-   * =========================================================
+   * BROWSER CONFIG
    */
   projects: [
     {

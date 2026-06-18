@@ -10,37 +10,37 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+
     container:
       image: kydockertest/bootcamp-automation-playwright:base
       options: --user root
 
     env:
-      BASE_URL: ${{ secrets.BASE_URL }}
-      EMAIL: ${{ secrets.EMAIL }}
-      PASSWORD: ${{ secrets.PASSWORD }}
+      # =========================
+      # CI ENV CONFIG (PRODUCTION)
+      # =========================
+      NODE_ENV: production
+
+      # Base URL + credentials dari GitHub Secrets
+      PROD_BASE_URL: ${{ secrets.BASE_URL }}
+      PROD_EMAIL: ${{ secrets.EMAIL }}
+      PROD_PASSWORD: ${{ secrets.PASSWORD }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
 
       - name: Install dependencies
         run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
 
       - name: Run Playwright tests
         run: npx playwright test --workers=1
-        env:
-         PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
