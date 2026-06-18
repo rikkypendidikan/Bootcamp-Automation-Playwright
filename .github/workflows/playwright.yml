@@ -19,38 +19,80 @@ jobs:
 
     env:
       NODE_ENV: production
+
+      # =========================================================
+      # MAPPING GITHUB SECRETS -> ENVIRONMENT VARIABLE
+      # =========================================================
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
       PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
       PRODUCTION_PASSWORD: ${{ secrets.PASSWORD_EMRA_PROD }}
 
     steps:
+      # =========================================================
+      # CHECKOUT SOURCE CODE
+      # =========================================================
       - uses: actions/checkout@v4
 
+      # =========================================================
+      # INSTALL PROJECT DEPENDENCIES
+      # NODE_ENV=development agar devDependencies ikut terinstall
+      # =========================================================
       - name: Install dependencies
         env:
           NODE_ENV: development
         run: npm ci
 
+      # =========================================================
+      # INSTALL PLAYWRIGHT BROWSER
+      # =========================================================
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
+      # =========================================================
+      # VERIFY ENVIRONMENT
+      # Memastikan seluruh secret berhasil terbaca
+      # =========================================================
       - name: Verify Environment
         run: |
           echo "NODE_ENV=$NODE_ENV"
-          [ -z "$PRODUCTION_BASE_URL" ] && echo "❌ BASE_URL kosong" && exit 1
-          [ -z "$PRODUCTION_EMAIL" ] && echo "❌ EMAIL kosong" && exit 1
-          [ -z "$PRODUCTION_PASSWORD" ] && echo "❌ PASSWORD kosong" && exit 1
+
+          if [ -z "$PRODUCTION_BASE_URL" ]; then
+            echo "❌ PRODUCTION_BASE_URL kosong"
+            exit 1
+          fi
+
+          if [ -z "$PRODUCTION_EMAIL" ]; then
+            echo "❌ PRODUCTION_EMAIL kosong"
+            exit 1
+          fi
+
+          if [ -z "$PRODUCTION_PASSWORD" ]; then
+            echo "❌ PRODUCTION_PASSWORD kosong"
+            exit 1
+          fi
+
           echo "✅ Environment Loaded"
 
-      - name: Test Telegram Connection
+      # =========================================================
+      # TEST TELEGRAM CONNECTION
+      # (Boleh dihapus nanti jika sudah tidak diperlukan)
+      # =========================================================
+      - name: Test Telegram Notification
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="✅ GitHub Actions Telegram Connected"
+            -d text="✅ GitHub Actions berhasil terhubung dengan Telegram!"
 
+      # =========================================================
+      # RUN PLAYWRIGHT TEST
+      # =========================================================
       - name: Run Playwright Test
         run: npx playwright test --workers=1
 
+      # =========================================================
+      # UPLOAD PLAYWRIGHT HTML REPORT
+      # Tetap diupload walaupun test gagal
+      # =========================================================
       - name: Upload Playwright Report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -60,44 +102,43 @@ jobs:
           retention-days: 30
 
       # =========================================================
-      # PARSE SUMMARY
-      # =========================================================
-      - name: Parse Test Summary
-        if: always()
-        run: |
-          if [ -f test-results/results.json ]; then
-            PASSED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status=="passed")] | length' test-results/results.json)
-            FAILED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status=="failed")] | length' test-results/results.json)
-            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status=="skipped")] | length' test-results/results.json)
-          else
-            PASSED=0
-            FAILED=0
-            SKIPPED=0
-          fi
-
-          echo "PASSED=$PASSED" >> $GITHUB_ENV
-          echo "FAILED=$FAILED" >> $GITHUB_ENV
-          echo "SKIPPED=$SKIPPED" >> $GITHUB_ENV
-
-      # =========================================================
-      # STATUS
+      # DETERMINE TEST STATUS
+      # Menentukan apakah workflow SUCCESS atau FAILED
+      # Nilai akan disimpan ke GITHUB_ENV agar dapat dipakai
+      # pada step berikutnya.
       # =========================================================
       - name: Determine Test Status
         if: always()
         run: |
           if [ "${{ job.status }}" = "success" ]; then
-            echo "STATUS=PASSED" >> $GITHUB_ENV
+            echo "TEST_STATUS=✅ PASSED" >> $GITHUB_ENV
           else
-            echo "STATUS=FAILED" >> $GITHUB_ENV
+            echo "TEST_STATUS=❌ FAILED" >> $GITHUB_ENV
           fi
 
       # =========================================================
-      # TELEGRAM (FULL SAFE STRING ONE-LINE STYLE)
+      # SEND TELEGRAM NOTIFICATION
+      # Step ini SELALU dijalankan walaupun Playwright gagal
       # =========================================================
       - name: Send Telegram Notification
         if: always()
         run: |
-          MESSAGE="🚀 EMRA AUTOMATION\n\n━━━━━━━━━━━━━━━━━━\n\nSTATUS: $STATUS\n\n📊 TEST SUMMARY\n\nPassed: $PASSED\nFailed: $FAILED\nSkipped: $SKIPPED\n\n━━━━━━━━━━━━━━━━━━\n\nEnv: Production\nTrigger: ${{ github.actor }}\nBranch: ${{ github.ref_name }}\n\n━━━━━━━━━━━━━━━━━━\n\nWorkflow:\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n━━━━━━━━━━━━━━━━━━\n\nPlaywright + GitHub Actions"
+          MESSAGE="🚀 EMRA AUTOMATION
+
+          Status
+          $TEST_STATUS
+
+          Repository
+          ${{ github.repository }}
+
+          Branch
+          ${{ github.ref_name }}
+
+          Trigger
+          ${{ github.actor }}
+
+          Workflow
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
