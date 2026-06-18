@@ -3,17 +3,19 @@ FROM node:20
 WORKDIR /app
 
 ENV PATH /app/node_modules/.bin:$PATH
+ENV PLAYWRIGHT_BROWSERS_PATH=0
 
 COPY package*.json ./
-RUN npm ci
 
-COPY . /app/
-RUN chmod +x /app/docker.sh
+# install dependency WAJIB INCLUDE devDependencies
+RUN npm ci --include=dev
+
+# copy project
+COPY . .
+
+# install browser (di image saja)
+RUN npx playwright install chromium
 
 USER root
 
-RUN npx playwright install --with-deps
-
-ENV PLAYWRIGHT_BROWSERS_PATH=0
-
-ENTRYPOINT [ "/app/docker.sh" ]
+ENTRYPOINT ["/app/docker.sh"]
