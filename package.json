@@ -13,8 +13,8 @@
   "author": "Rikky Ihza Pratama",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
     "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.61.0",
     "@types/node": "^25.9.2",
     "allure-commandline": "^2.42.0",
     "allure-playwright": "^3.9.0"

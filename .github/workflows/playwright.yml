@@ -33,7 +33,7 @@ jobs:
       # INSTALL DEPENDENCIES (FIXED)
       # =========================
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # =========================
       # INSTALL BROWSER
