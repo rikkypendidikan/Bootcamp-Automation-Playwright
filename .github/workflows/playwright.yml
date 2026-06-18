@@ -2,14 +2,10 @@ name: Playwright Tests
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
 jobs:
   test:
@@ -24,65 +20,36 @@ jobs:
       options: --user root
 
     env:
-      # ==================================================
-      # Environment Aktif
-      # ==================================================
-      NODE_ENV: production
+      # Environment aplikasi
+      TEST_ENV: production
 
-      # ==================================================
-      # Production
-      # ==================================================
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
       PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
       PRODUCTION_PASSWORD: ${{ secrets.PASSWORD_EMRA_PROD }}
 
-      # ==================================================
-      # Staging (opsional)
-      # ==================================================
       STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
       STAGING_EMAIL: ${{ secrets.STAGING_EMAIL }}
       STAGING_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
 
     steps:
-      # ==================================================
-      # Checkout Source Code
-      # ==================================================
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ==================================================
-      # Install Dependency
-      # ==================================================
       - name: Install Dependencies
-        run: |
-          npm ci
+        run: npm ci
 
-      # ==================================================
-      # Validasi Playwright Terinstall
-      # ==================================================
       - name: Verify Playwright
-        run: |
-          npm ls @playwright/test
+        run: npm ls @playwright/test
 
-      # ==================================================
-      # Install Browser
-      # ==================================================
       - name: Install Chromium
-        run: |
-          npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
-      # ==================================================
-      # Jalankan Test
-      # ==================================================
       - name: Run Playwright Tests
         id: playwright
         run: |
-          npx playwright test --workers=1
+          NODE_ENV=$TEST_ENV npx playwright test --workers=1
         continue-on-error: true
 
-      # ==================================================
-      # Upload Report
-      # ==================================================
       - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,36 +58,28 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      # ==================================================
-      # Parse JSON Report
-      # ==================================================
       - name: Parse Report
         if: always()
-        run: |
-          node scripts/parse-playwright-report.js
+        run: node scripts/parse-playwright-report.js
 
-      # ==================================================
-      # Telegram Notification
-      # ==================================================
       - name: Send Telegram Notification
         if: always()
         shell: bash
         run: |
-
           if [ "${{ steps.playwright.outcome }}" = "success" ]; then
             STATUS="✅ PASSED"
           else
             STATUS="❌ FAILED"
           fi
 
-          MESSAGE=$(printf "🚀 EMRA AUTOMATION\n\n━━━━━━━━━━━━━━━━━━\n\n%s\n\n📊 TEST SUMMARY\n\n✅ Passed : %s\n❌ Failed : %s\n⚪ Skipped : %s\n⏱ Duration : %ss\n\n━━━━━━━━━━━━━━━━━━\n\n❌ Errors\n%s\n\n━━━━━━━━━━━━━━━━━━\n\n🌍 Environment\n%s\n\n👤 Trigger\n%s\n\n🌿 Branch\n%s\n\n━━━━━━━━━━━━━━━━━━\n\n🔗 Workflow\nhttps://github.com/%s/actions/runs/%s\n\n━━━━━━━━━━━━━━━━━━\n\n🤖 Playwright + GitHub Actions" \
+          MESSAGE=$(printf "🚀 EMRA AUTOMATION\n\n━━━━━━━━━━━━━━━━━━\n\n%s\n\n📊 TEST SUMMARY\n\n✅ Passed : %s\n❌ Failed : %s\n⚪ Skipped : %s\n⏱ Duration : %ss\n\n━━━━━━━━━━━━━━━━━━\n\n❌ Errors\n%s\n\n━━━━━━━━━━━━━━━━━━\n\n🌍 Environment\n%s\n\n👤 Trigger\n%s\n\n🌿 Branch\n%s\n\n━━━━━━━━━━━━━━━━━━\n\n🔗 Workflow\nhttps://github.com/%s/actions/runs/%s" \
           "$STATUS" \
           "${PASSED:-0}" \
           "${FAILED:-0}" \
           "${SKIPPED:-0}" \
           "${DURATION:-0}" \
           "${ERRORS:-Tidak ada error}" \
-          "${NODE_ENV}" \
+          "$TEST_ENV" \
           "${{ github.actor }}" \
           "${{ github.ref_name }}" \
           "${{ github.repository }}" \
@@ -131,9 +90,6 @@ jobs:
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
             --data-urlencode text="$MESSAGE"
 
-      # ==================================================
-      # Fail Job Jika Test Gagal
-      # ==================================================
       - name: Mark Workflow Failed
         if: steps.playwright.outcome == 'failure'
         run: exit 1
