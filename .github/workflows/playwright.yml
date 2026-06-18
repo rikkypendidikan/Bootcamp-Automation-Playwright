@@ -19,11 +19,7 @@ jobs:
       # =========================
       # BASE ENV (JANGAN production di level global install)
       # =========================
-      NODE_ENV: test
-
-      PROD_BASE_URL: ${{ secrets.BASE_URL }}
-      PROD_EMAIL: ${{ secrets.EMAIL }}
-      PROD_PASSWORD: ${{ secrets.PASSWORD }}
+      NODE_ENV: production
 
     steps:
       - name: Checkout Repository
