@@ -1,3 +1,13 @@
+/**
+ * =========================================================
+ * TELEGRAM MESSAGE FORMATTER
+ * =========================================================
+ *
+ * Fungsi:
+ * Membentuk template pesan Telegram
+ * agar format notifikasi selalu konsisten.
+ */
+
 export function formatTelegramReport(data: {
   title?: string;
   passed: number;
@@ -10,11 +20,17 @@ export function formatTelegramReport(data: {
   workflowUrl: string;
   errors?: string;
 }) {
+  /**
+   * Menentukan status akhir test
+   */
   const status =
     data.failed === 0
       ? '✅ PASSED'
       : '❌ FAILED';
 
+  /**
+   * Template pesan Telegram
+   */
   return `
 🚀 ${data.title ?? 'EMRA AUTOMATION'}
 
