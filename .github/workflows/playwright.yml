@@ -20,6 +20,7 @@ jobs:
       # BASE ENV (JANGAN production di level global install)
       # =========================
       NODE_ENV: production
+      PRODUCTION_BASE_URL: https://www.emra.chat
 
     steps:
       - name: Checkout Repository
