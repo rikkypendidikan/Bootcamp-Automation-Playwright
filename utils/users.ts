@@ -2,17 +2,18 @@
  * =========================================================
  * USER DATA WRAPPER (SECURE LAYER)
  * =========================================================
- * File ini digunakan sebagai jembatan antara test dan ENV
- * Semua credential diambil dari file .env
- * Tidak boleh ada hardcode password/email di test
+ * File ini digunakan sebagai jembatan antara test dan ENV.
+ * Semua credential diambil dari file .env.
+ * Tidak boleh ada hardcode email/password di test.
  */
 
 const env = process.env.NODE_ENV || 'local';
 
 /**
- * Helper untuk mengambil nilai ENV dengan aman
+ * Helper mengambil ENV.
+ * Mengembalikan string kosong jika tidak ditemukan.
  */
-const getEnv = (key: string) => process.env[key] || '';
+const getEnv = (key: string): string => process.env[key] ?? '';
 
 /**
  * =========================================================
@@ -21,26 +22,28 @@ const getEnv = (key: string) => process.env[key] || '';
  */
 export const users = {
   /**
-   * USER VALID (untuk login sukses)
+   * USER VALID
    */
   valid: {
     email:
       env === 'staging'
         ? getEnv('STAGING_EMAIL')
         : env === 'production'
-          ? getEnv('PROD_EMAIL')
+          // ✅ sesuai nama variable di .env
+          ? getEnv('PRODUCTION_EMAIL')
           : getEnv('LOCAL_EMAIL'),
 
     password:
       env === 'staging'
         ? getEnv('STAGING_PASSWORD')
         : env === 'production'
-          ? getEnv('PROD_PASSWORD')
+          // ✅ sesuai nama variable di .env
+          ? getEnv('PRODUCTION_PASSWORD')
           : getEnv('LOCAL_PASSWORD'),
   },
 
   /**
-   * USER INVALID (untuk negative test)
+   * USER INVALID
    */
   invalid: {
     email: 'invalid@example.com',
