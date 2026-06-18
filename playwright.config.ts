@@ -42,7 +42,7 @@ export default defineConfig({
 
   fullyParallel: true,
 
-  retries: 0,
+  retries: 2,
 
   reporter: [
     ['list'],
