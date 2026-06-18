@@ -37,6 +37,12 @@ ${data.errors ?? 'Tidak ada error'}
 
 ━━━━━━━━━━━━━━━━━━
 
+📸 Screenshot : Available
+🎥 Video : Available
+🧭 Trace : Available
+
+━━━━━━━━━━━━━━━━━━
+
 🌍 Environment
 ${data.environment}
 

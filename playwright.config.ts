@@ -32,21 +32,53 @@ if (!baseURL) {
 }
 
 export default defineConfig({
+  /**
+   * Folder test
+   */
   testDir: './tests',
 
+  /**
+   * Folder hasil test
+   * Berisi screenshot, video, trace, dll
+   */
+  outputDir: 'test-results',
+
+  /**
+   * Timeout per test
+   */
   timeout: 30000,
 
+  /**
+   * Timeout expect()
+   */
   expect: {
     timeout: 5000,
   },
 
+  /**
+   * Jalankan paralel
+   */
   fullyParallel: true,
 
+  /**
+   * Retry jika gagal
+   */
   retries: 2,
 
+  /**
+   * Reporter
+   */
   reporter: [
     ['list'],
-    ['html'],
+
+    [
+      'html',
+      {
+        outputFolder: 'playwright-report',
+        open: 'never',
+      },
+    ],
+
     [
       'json',
       {
@@ -56,11 +88,34 @@ export default defineConfig({
   ],
 
   use: {
+    /**
+     * Base URL sesuai environment
+     */
     baseURL,
+
+    /**
+     * Headless untuk CI/CD
+     */
     headless: true,
+
+    /**
+     * Screenshot otomatis jika gagal
+     */
     screenshot: 'only-on-failure',
+
+    /**
+     * Simpan video jika gagal
+     */
     video: 'retain-on-failure',
-    trace: 'on-first-retry',
+
+    /**
+     * Simpan trace jika gagal
+     */
+    trace: 'retain-on-failure',
+
+    /**
+     * Timeout action
+     */
     actionTimeout: 10000,
   },
 });

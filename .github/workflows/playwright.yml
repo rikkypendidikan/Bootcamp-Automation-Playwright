@@ -24,15 +24,12 @@ jobs:
       options: --user root
 
     env:
-      # Environment aplikasi
       TEST_ENV: production
 
-      # Production
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
       PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
       PRODUCTION_PASSWORD: ${{ secrets.PASSWORD_EMRA_PROD }}
 
-      # Staging
       STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
       STAGING_EMAIL: ${{ secrets.STAGING_EMAIL }}
       STAGING_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
@@ -56,12 +53,14 @@ jobs:
           NODE_ENV=$TEST_ENV npx playwright test --workers=1
         continue-on-error: true
 
-      - name: Upload Report
+      - name: Upload Playwright Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-artifacts
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 30
 
       - name: Parse Report
@@ -102,6 +101,12 @@ jobs:
             echo
             echo "━━━━━━━━━━━━━━━━━━"
             echo
+            echo "📸 Screenshot : Available"
+            echo "🎥 Video : Available"
+            echo "🧭 Trace : Available"
+            echo
+            echo "━━━━━━━━━━━━━━━━━━"
+            echo
             echo "🌍 Environment"
             echo "${TEST_ENV}"
             echo
@@ -115,10 +120,6 @@ jobs:
             echo
             echo "🔗 Workflow"
             echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "🤖 Playwright + GitHub Actions"
           } > telegram_message.txt
 
           curl -s -X POST \
