@@ -16,7 +16,11 @@ jobs:
       options: --user root
 
     env:
-      NODE_ENV: production
+      # =========================
+      # BASE ENV (JANGAN production di level global install)
+      # =========================
+      NODE_ENV: test
+
       PROD_BASE_URL: ${{ secrets.BASE_URL }}
       PROD_EMAIL: ${{ secrets.EMAIL }}
       PROD_PASSWORD: ${{ secrets.PASSWORD }}
@@ -26,16 +30,21 @@ jobs:
         uses: actions/checkout@v4
 
       # =========================
-      # DEBUG (optional tapi berguna)
+      # INSTALL DEPENDENCIES (FIXED)
       # =========================
-      - name: Check environment
-        run: |
-          node -v
-          npm -v
-          npx playwright --version || true
+      - name: Install dependencies
+        env:
+          NODE_ENV: development   # 🔥 INI KUNCI FIX
+        run: npm ci
 
       # =========================
-      # RUN TESTS ONLY (NO INSTALL!)
+      # INSTALL PLAYWRIGHT BROWSER
+      # =========================
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      # =========================
+      # RUN TESTS
       # =========================
       - name: Run Playwright tests
         run: npx playwright test --workers=1
