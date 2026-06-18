@@ -3,26 +3,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-/**
- * =========================================================
- * ENV DETECTION
- * =========================================================
- */
 const env = process.env.NODE_ENV || 'local';
 
-/**
- * Ambil BASE URL sesuai environment
- */
-const baseURLMap: Record<string, string | undefined> = {
-  local: process.env.LOCAL_BASE_URL,
-  staging: process.env.STAGING_BASE_URL,
-  production: process.env.PRODUCTION_BASE_URL,
-};
-
-const baseURL = baseURLMap[env];
+const baseURL =
+  env === 'production'
+    ? process.env.PRODUCTION_BASE_URL
+    : env === 'staging'
+    ? process.env.STAGING_BASE_URL
+    : process.env.LOCAL_BASE_URL;
 
 if (!baseURL) {
-  throw new Error(`❌ BASE_URL untuk environment "${env}" tidak ditemukan.`);
+  throw new Error(`❌ BASE_URL untuk "${env}" tidak ditemukan.`);
 }
 
 export default defineConfig({
@@ -30,17 +21,21 @@ export default defineConfig({
 
   timeout: 30000,
 
-  expect: {
-    timeout: 5000,
-  },
+  expect: { timeout: 5000 },
 
   fullyParallel: true,
 
-  retries: 2,
+  retries: 1,
 
   reporter: [
     ['list'],
-    ['html', { open: 'never' }],
+    ['html'],
+    [
+      'json',
+      {
+        outputFile: 'playwright-report/report.json',
+      },
+    ],
   ],
 
   use: {
