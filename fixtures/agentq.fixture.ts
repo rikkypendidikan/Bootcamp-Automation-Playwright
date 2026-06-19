@@ -1,36 +1,13 @@
 import { test as base } from '@playwright/test';
 import { pushTestResultToAgentQ } from '../helper/agentq-helper';
 
-/**
- * =========================================================
- * FIXTURE AGENTQ
- * =========================================================
- *
- * Fixture ini bertugas mengirim hasil test ke AgentQ
- * setelah test selesai dieksekusi.
- *
- * Dengan fixture ini kita tidak perlu menulis
- * test.afterEach() pada setiap file test.
- *
- * Semua hasil test akan otomatis dikirim
- * ke AgentQ melalui helper.
- */
 export const test = base;
 
 test.afterEach(async ({}, testInfo) => {
-
-  /**
-   * Durasi eksekusi test (ms)
-   */
   const executionTime = testInfo.duration;
 
-  /**
-   * Gabungkan seluruh error menjadi
-   * satu string agar mudah dibaca
-   * pada AgentQ.
-   */
   const notes = testInfo.errors
-    .map(error => error.message)
+    .map((error) => error.message)
     .join('\n');
 
   await pushTestResultToAgentQ(
@@ -39,7 +16,6 @@ test.afterEach(async ({}, testInfo) => {
     executionTime,
     notes,
   );
-
 });
 
 export { expect } from '@playwright/test';
