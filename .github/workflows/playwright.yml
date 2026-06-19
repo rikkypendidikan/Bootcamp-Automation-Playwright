@@ -25,8 +25,14 @@ jobs:
 
     env:
       CI: true
+
       TEST_ENV: production
+
       AGENTQ_ENABLE: true
+
+      # =====================================================
+      # EMRA
+      # =====================================================
 
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
       PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
@@ -36,7 +42,11 @@ jobs:
       STAGING_EMAIL: ${{ secrets.STAGING_EMAIL }}
       STAGING_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
 
-      AGENTQ_API_URL: https://backend-app.agentq.id
+      # =====================================================
+      # AGENTQ
+      # =====================================================
+
+      AGENTQ_API_URL: ${{ secrets.AGENTQ_BASE_URL }}
 
       AGENTQ_PROJECT_ID: ${{ secrets.AGENTQ_PROJECT_ID }}
       AGENTQ_TESTRUN_ID: ${{ secrets.AGENTQ_TESTRUN_ID }}
@@ -56,6 +66,12 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Verify AgentQ Configuration
+        run: |
+          echo "AGENTQ_API_URL=$AGENTQ_API_URL"
+          echo "AGENTQ_PROJECT_ID=$AGENTQ_PROJECT_ID"
+          echo "AGENTQ_TESTRUN_ID=$AGENTQ_TESTRUN_ID"
 
       - name: Run Playwright Tests
         id: playwright
@@ -108,12 +124,6 @@ jobs:
             echo "❌ Errors"
             echo
             echo "${ERRORS:-Tidak ada error}"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "📸 Screenshot : Available"
-            echo "🎥 Video : Available"
-            echo "🧭 Trace : Available"
             echo
             echo "━━━━━━━━━━━━━━━━━━"
             echo

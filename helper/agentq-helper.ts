@@ -80,7 +80,8 @@ async function getAccessToken(): Promise<string> {
   if (accessToken) {
     return accessToken;
   }
-
+console.log('AgentQ URL:', AGENTQ_API_URL);
+console.log('AgentQ Email:', AGENTQ_EMAIL);
   const response = await axios.post(
     `${AGENTQ_API_URL}/auth/login`,
     {
