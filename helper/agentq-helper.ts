@@ -4,15 +4,6 @@ import { exportTestResult } from 'agentq-playwright/dist/testResult';
  * =========================================================
  * MAPPING PLAYWRIGHT TEST CASE -> AGENTQ TC ID
  * =========================================================
- *
- * Mapping ini digunakan agar hasil test Playwright
- * dapat dikirim ke Test Case yang sesuai di AgentQ.
- *
- * Format:
- *
- * TC_LOGIN_001 -> 1
- * TC_LOGIN_002 -> 2
- * dst...
  */
 const AGENTQ_TC_MAPPING: Record<string, string> = {
   TC_LOGIN_001: '1',
@@ -33,7 +24,7 @@ const AGENTQ_TC_MAPPING: Record<string, string> = {
 
 /**
  * =========================================================
- * KIRIM HASIL TEST KE AGENTQ
+ * KIRIM HASIL TEST KE AGENTQ (LOCAL + CI/CD)
  * =========================================================
  */
 export async function pushTestResultToAgentQ(
@@ -45,28 +36,10 @@ export async function pushTestResultToAgentQ(
 
   /**
    * =========================================================
-   * AGENTQ NONAKTIF
+   * AGENTQ NONAKTIF (GLOBAL SWITCH)
    * =========================================================
    */
   if (process.env.AGENTQ_ENABLE !== 'true') {
-    return;
-  }
-
-  /**
-   * =========================================================
-   * SKIP DI GITHUB ACTIONS
-   * =========================================================
-   *
-   * Saat ini endpoint AgentQ terkadang diblokir
-   * Cloudflare ketika dipanggil dari GitHub Runner.
-   *
-   * Agar workflow CI/CD tetap stabil maka
-   * sinkronisasi AgentQ hanya dijalankan di local.
-   */
-  if (process.env.GITHUB_ACTIONS === 'true') {
-    console.log(
-      '[AgentQ] Sinkronisasi dilewati pada GitHub Actions',
-    );
     return;
   }
 
@@ -76,9 +49,7 @@ export async function pushTestResultToAgentQ(
    * =========================================================
    */
   if (!process.env.AGENTQ_TESTRUN_ID) {
-    console.warn(
-      '[AgentQ] AGENTQ_TESTRUN_ID belum dikonfigurasi',
-    );
+    console.warn('[AgentQ] AGENTQ_TESTRUN_ID belum dikonfigurasi');
     return;
   }
 
@@ -86,47 +57,34 @@ export async function pushTestResultToAgentQ(
 
     /**
      * =========================================================
-     * AMBIL KODE TEST CASE
+     * AMBIL TEST CASE CODE DARI TITLE
      * =========================================================
-     *
      * Contoh:
-     *
      * TC_LOGIN_001 - Positive - Login Success
-     *
-     * Menjadi:
-     *
-     * TC_LOGIN_001
+     * -> TC_LOGIN_001
      */
     const testCaseCode = testTitle.split(' - ')[0];
 
     const tcId = AGENTQ_TC_MAPPING[testCaseCode];
 
     /**
-     * Mapping tidak ditemukan
+     * =========================================================
+     * AUTO-FALLBACK JIKA MAPPING TIDAK DITEMUKAN
+     * =========================================================
+     * Tidak lagi skip → tetap kirim ke AgentQ
      */
+    const finalTcId = tcId ?? '0';
+
     if (!tcId) {
       console.warn(
-        `[AgentQ] Mapping tidak ditemukan untuk: ${testCaseCode}`,
+        `[AgentQ] Mapping tidak ditemukan untuk: ${testCaseCode}. Menggunakan fallback TC_ID=0`,
       );
-      return;
     }
 
     /**
      * =========================================================
      * MAPPING STATUS PLAYWRIGHT -> AGENTQ
      * =========================================================
-     *
-     * Playwright:
-     * - passed
-     * - failed
-     * - skipped
-     * - timedOut
-     * - interrupted
-     *
-     * AgentQ:
-     * - passed
-     * - failed
-     * - skipped
      */
     const agentQStatus =
       status === 'passed'
@@ -136,35 +94,26 @@ export async function pushTestResultToAgentQ(
           : 'failed';
 
     await exportTestResult(
-      tcId,
+      finalTcId,
       process.env.AGENTQ_TESTRUN_ID,
       {
         status: agentQStatus,
-
-        actualResult:
-          status ??
-          'failed',
-
+        actualResult: status ?? 'failed',
         executionTime,
-
-        notes,
+        notes: notes
+          ? `${notes}\n[TC_CODE: ${testCaseCode}]`
+          : `[TC_CODE: ${testCaseCode}]`,
       },
     );
 
     console.log(
-      `[AgentQ] Result berhasil dikirim untuk ${testCaseCode}`,
+      `[AgentQ] Result terkirim: ${testCaseCode} -> TC_ID ${finalTcId}`,
     );
 
   } catch (error) {
-
-    /**
-     * Jangan sampai AgentQ membuat
-     * test automation menjadi gagal.
-     */
     console.error(
       '[AgentQ] Gagal mengirim hasil test:',
       error,
     );
-
   }
 }
