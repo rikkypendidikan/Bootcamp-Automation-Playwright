@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/agentq.fixture';
+console.log('🔥 REGISTER SPEC LOADED');
 import type { Page } from '@playwright/test';
 
 import { createContact } from '../data/contact.data';
