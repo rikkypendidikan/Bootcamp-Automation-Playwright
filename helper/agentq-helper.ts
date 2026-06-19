@@ -7,6 +7,12 @@ import { exportTestResult } from 'agentq-playwright/dist/testResult';
  *
  * Mapping ini digunakan agar hasil test Playwright
  * dapat dikirim ke Test Case yang sesuai di AgentQ.
+ *
+ * Format:
+ *
+ * TC_LOGIN_001 -> 1
+ * TC_LOGIN_002 -> 2
+ * dst...
  */
 const AGENTQ_TC_MAPPING: Record<string, string> = {
   TC_LOGIN_001: '1',
@@ -38,34 +44,66 @@ export async function pushTestResultToAgentQ(
 ): Promise<void> {
 
   /**
-   * Skip jika integrasi AgentQ dimatikan
+   * =========================================================
+   * AGENTQ NONAKTIF
+   * =========================================================
    */
   if (process.env.AGENTQ_ENABLE !== 'true') {
     return;
   }
 
+  /**
+   * =========================================================
+   * SKIP DI GITHUB ACTIONS
+   * =========================================================
+   *
+   * Saat ini endpoint AgentQ terkadang diblokir
+   * Cloudflare ketika dipanggil dari GitHub Runner.
+   *
+   * Agar workflow CI/CD tetap stabil maka
+   * sinkronisasi AgentQ hanya dijalankan di local.
+   */
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.log(
+      '[AgentQ] Sinkronisasi dilewati pada GitHub Actions',
+    );
+    return;
+  }
+
+  /**
+   * =========================================================
+   * VALIDASI TEST RUN ID
+   * =========================================================
+   */
   if (!process.env.AGENTQ_TESTRUN_ID) {
-  console.warn(
-    '[AgentQ] AGENTQ_TESTRUN_ID belum dikonfigurasi',
-  );
-  return;
-}
+    console.warn(
+      '[AgentQ] AGENTQ_TESTRUN_ID belum dikonfigurasi',
+    );
+    return;
+  }
 
   try {
 
     /**
-     * Ambil kode test case.
+     * =========================================================
+     * AMBIL KODE TEST CASE
+     * =========================================================
      *
      * Contoh:
-     * TC_LOGIN_001 - Positive ...
+     *
+     * TC_LOGIN_001 - Positive - Login Success
      *
      * Menjadi:
+     *
      * TC_LOGIN_001
      */
     const testCaseCode = testTitle.split(' - ')[0];
 
     const tcId = AGENTQ_TC_MAPPING[testCaseCode];
 
+    /**
+     * Mapping tidak ditemukan
+     */
     if (!tcId) {
       console.warn(
         `[AgentQ] Mapping tidak ditemukan untuk: ${testCaseCode}`,
@@ -73,18 +111,39 @@ export async function pushTestResultToAgentQ(
       return;
     }
 
+    /**
+     * =========================================================
+     * MAPPING STATUS PLAYWRIGHT -> AGENTQ
+     * =========================================================
+     *
+     * Playwright:
+     * - passed
+     * - failed
+     * - skipped
+     * - timedOut
+     * - interrupted
+     *
+     * AgentQ:
+     * - passed
+     * - failed
+     * - skipped
+     */
+    const agentQStatus =
+      status === 'passed'
+        ? 'passed'
+        : status === 'skipped'
+          ? 'skipped'
+          : 'failed';
+
     await exportTestResult(
       tcId,
-      process.env.AGENTQ_TESTRUN_ID as string,
+      process.env.AGENTQ_TESTRUN_ID,
       {
-        status:
-          status === 'passed'
-            ? 'passed'
-            : status === 'skipped'
-              ? 'skipped'
-              : 'failed',
+        status: agentQStatus,
 
-        actualResult: status ?? 'failed',
+        actualResult:
+          status ??
+          'failed',
 
         executionTime,
 
@@ -98,6 +157,10 @@ export async function pushTestResultToAgentQ(
 
   } catch (error) {
 
+    /**
+     * Jangan sampai AgentQ membuat
+     * test automation menjadi gagal.
+     */
     console.error(
       '[AgentQ] Gagal mengirim hasil test:',
       error,

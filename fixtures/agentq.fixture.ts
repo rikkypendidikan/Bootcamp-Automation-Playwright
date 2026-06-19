@@ -10,14 +10,25 @@ import { pushTestResultToAgentQ } from '../helper/agentq-helper';
  * setelah test selesai dieksekusi.
  *
  * Dengan fixture ini kita tidak perlu menulis
- * test.afterEach() di setiap file test.
+ * test.afterEach() pada setiap file test.
+ *
+ * Semua hasil test akan otomatis dikirim
+ * ke AgentQ melalui helper.
  */
 export const test = base;
 
 test.afterEach(async ({}, testInfo) => {
 
+  /**
+   * Durasi eksekusi test (ms)
+   */
   const executionTime = testInfo.duration;
 
+  /**
+   * Gabungkan seluruh error menjadi
+   * satu string agar mudah dibaca
+   * pada AgentQ.
+   */
   const notes = testInfo.errors
     .map(error => error.message)
     .join('\n');

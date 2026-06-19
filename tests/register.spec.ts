@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/agentq.fixture';
+import { test } from '../fixtures/agentq.fixture';
 import { RegisterPage } from '../pages/register.page';
 import { createUser } from '../utils/faker-data';
 import { registerNegativeData } from '../data/register.data';
