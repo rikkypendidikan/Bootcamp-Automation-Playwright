@@ -2,7 +2,16 @@ import { exportTestResult } from 'agentq-playwright/dist/testResult';
 
 /**
  * =========================================================
- * MAPPING PLAYWRIGHT TEST CASE -> AGENTQ TC ID
+ * AGENTQ CONFIG
+ * =========================================================
+ */
+const AGENTQ_TOKEN = process.env.AGENTQ_TOKEN;
+const AGENTQ_PROJECT_ID = process.env.AGENTQ_PROJECT_ID;
+const AGENTQ_TESTRUN_ID = process.env.AGENTQ_TESTRUN_ID;
+
+/**
+ * =========================================================
+ * TC MAPPING
  * =========================================================
  */
 const AGENTQ_TC_MAPPING: Record<string, string> = {
@@ -24,7 +33,7 @@ const AGENTQ_TC_MAPPING: Record<string, string> = {
 
 /**
  * =========================================================
- * KIRIM HASIL TEST KE AGENTQ (LOCAL + CI/CD)
+ * PUSH RESULT TO AGENTQ (NO LOGIN, TOKEN ONLY)
  * =========================================================
  */
 export async function pushTestResultToAgentQ(
@@ -35,57 +44,26 @@ export async function pushTestResultToAgentQ(
 ): Promise<void> {
 
   /**
-   * =========================================================
-   * AGENTQ NONAKTIF (GLOBAL SWITCH)
-   * =========================================================
+   * GLOBAL SWITCH
    */
-  if (process.env.AGENTQ_ENABLE !== 'true') {
-    return;
-  }
+  if (process.env.AGENTQ_ENABLE !== 'true') return;
 
   /**
-   * =========================================================
-   * VALIDASI TEST RUN ID
-   * =========================================================
+   * REQUIRED ENV CHECK
    */
-  if (!process.env.AGENTQ_TESTRUN_ID) {
-    console.warn('[AgentQ] AGENTQ_TESTRUN_ID belum dikonfigurasi');
+  if (!AGENTQ_TOKEN || !AGENTQ_TESTRUN_ID) {
+    console.warn('[AgentQ] Missing TOKEN or TESTRUN_ID');
     return;
   }
 
   try {
-
-    /**
-     * =========================================================
-     * AMBIL TEST CASE CODE DARI TITLE
-     * =========================================================
-     * Contoh:
-     * TC_LOGIN_001 - Positive - Login Success
-     * -> TC_LOGIN_001
-     */
     const testCaseCode = testTitle.split(' - ')[0];
+    const tcId = AGENTQ_TC_MAPPING[testCaseCode] ?? '0';
 
-    const tcId = AGENTQ_TC_MAPPING[testCaseCode];
-
-    /**
-     * =========================================================
-     * AUTO-FALLBACK JIKA MAPPING TIDAK DITEMUKAN
-     * =========================================================
-     * Tidak lagi skip → tetap kirim ke AgentQ
-     */
-    const finalTcId = tcId ?? '0';
-
-    if (!tcId) {
-      console.warn(
-        `[AgentQ] Mapping tidak ditemukan untuk: ${testCaseCode}. Menggunakan fallback TC_ID=0`,
-      );
+    if (!AGENTQ_TC_MAPPING[testCaseCode]) {
+      console.warn(`[AgentQ] Unmapped TC: ${testCaseCode} -> fallback 0`);
     }
 
-    /**
-     * =========================================================
-     * MAPPING STATUS PLAYWRIGHT -> AGENTQ
-     * =========================================================
-     */
     const agentQStatus =
       status === 'passed'
         ? 'passed'
@@ -93,27 +71,25 @@ export async function pushTestResultToAgentQ(
           ? 'skipped'
           : 'failed';
 
+    /**
+     * 🔥 IMPORTANT FIX:
+     * Tidak ada login endpoint dipanggil sama sekali
+     * hanya push result via token
+     */
     await exportTestResult(
-      finalTcId,
-      process.env.AGENTQ_TESTRUN_ID,
+      tcId,
+      AGENTQ_TESTRUN_ID,
       {
         status: agentQStatus,
         actualResult: status ?? 'failed',
         executionTime,
-        notes: notes
-          ? `${notes}\n[TC_CODE: ${testCaseCode}]`
-          : `[TC_CODE: ${testCaseCode}]`,
-      },
+        notes: `${notes}\nTC_CODE=${testCaseCode}`,
+      } as any
     );
 
-    console.log(
-      `[AgentQ] Result terkirim: ${testCaseCode} -> TC_ID ${finalTcId}`,
-    );
+    console.log(`[AgentQ] Sent OK: ${testCaseCode}`);
 
   } catch (error) {
-    console.error(
-      '[AgentQ] Gagal mengirim hasil test:',
-      error,
-    );
+    console.error('[AgentQ] ERROR send result:', error);
   }
 }
