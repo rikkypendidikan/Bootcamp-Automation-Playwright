@@ -1,4 +1,5 @@
 import { test } from '../fixtures/agentq.fixture';
+console.log('🔥 LOGIN SPEC LOADED');
 import { LoginPage } from '../pages/login.page';
 import { DashboardPage } from '../pages/dashboard.page';
 import { users } from '../utils/users';

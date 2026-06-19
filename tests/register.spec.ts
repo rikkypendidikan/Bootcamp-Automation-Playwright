@@ -1,4 +1,5 @@
 import { test } from '../fixtures/agentq.fixture';
+console.log('🔥 REGISTER SPEC LOADED');
 import { RegisterPage } from '../pages/register.page';
 import { createUser } from '../utils/faker-data';
 import { registerNegativeData } from '../data/register.data';

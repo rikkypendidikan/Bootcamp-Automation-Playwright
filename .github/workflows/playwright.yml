@@ -14,9 +14,7 @@ on:
 jobs:
   test:
     name: Playwright Automation
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 60
 
     container:
@@ -25,14 +23,8 @@ jobs:
 
     env:
       CI: true
-
       TEST_ENV: production
-
       AGENTQ_ENABLE: true
-
-      # =====================================================
-      # EMRA
-      # =====================================================
 
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
       PRODUCTION_EMAIL: ${{ secrets.EMAIL_EMRA_PROD }}
@@ -42,15 +34,9 @@ jobs:
       STAGING_EMAIL: ${{ secrets.STAGING_EMAIL }}
       STAGING_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
 
-      # =====================================================
-      # AGENTQ
-      # =====================================================
-
       AGENTQ_API_URL: ${{ secrets.AGENTQ_BASE_URL }}
-
       AGENTQ_PROJECT_ID: ${{ secrets.AGENTQ_PROJECT_ID }}
       AGENTQ_TESTRUN_ID: ${{ secrets.AGENTQ_TESTRUN_ID }}
-
       AGENTQ_EMAIL: ${{ secrets.AGENTQ_EMAIL }}
       AGENTQ_PASSWORD: ${{ secrets.AGENTQ_PASSWORD }}
 
@@ -69,9 +55,9 @@ jobs:
 
       - name: Verify AgentQ Configuration
         run: |
-          echo "AGENTQ_API_URL=$AGENTQ_API_URL"
-          echo "AGENTQ_PROJECT_ID=$AGENTQ_PROJECT_ID"
-          echo "AGENTQ_TESTRUN_ID=$AGENTQ_TESTRUN_ID"
+          echo "AGENTQ_API_URL: ${AGENTQ_API_URL:+SET}"
+          echo "AGENTQ_PROJECT_ID: ${AGENTQ_PROJECT_ID:+SET}"
+          echo "AGENTQ_TESTRUN_ID: ${AGENTQ_TESTRUN_ID:+SET}"
 
       - name: Run Playwright Tests
         id: playwright
@@ -93,11 +79,15 @@ jobs:
         if: always()
         run: node scripts/parse-playwright-report.js
 
+      # =====================================================
+      # TELEGRAM SAFE (FINAL STABLE VERSION)
+      # =====================================================
       - name: Send Telegram Notification
         if: always()
         shell: bash
         env:
           STATUS: ${{ steps.playwright.outcome }}
+
         run: |
           if [ "$STATUS" = "success" ]; then
             RESULT="✅ PASSED"
@@ -105,47 +95,48 @@ jobs:
             RESULT="❌ FAILED"
           fi
 
-          {
-            echo "🚀 EMRA AUTOMATION"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "$RESULT"
-            echo
-            echo "📊 TEST SUMMARY"
-            echo
-            echo "✅ Passed : ${PASSED:-0}"
-            echo "❌ Failed : ${FAILED:-0}"
-            echo "⚪ Skipped : ${SKIPPED:-0}"
-            echo "⏱ Duration : ${DURATION:-0}s"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "❌ Errors"
-            echo
-            echo "${ERRORS:-Tidak ada error}"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "🌍 Environment"
-            echo "${TEST_ENV}"
-            echo
-            echo "👤 Trigger"
-            echo "${{ github.actor }}"
-            echo
-            echo "🌿 Branch"
-            echo "${{ github.ref_name }}"
-            echo
-            echo "━━━━━━━━━━━━━━━━━━"
-            echo
-            echo "🔗 Workflow"
-            echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          } > telegram_message.txt
+          FILE="telegram_message.txt"
+          rm -f $FILE
+
+          echo "🚀 EMRA AUTOMATION REPORT" >> $FILE
+          echo "━━━━━━━━━━━━━━━━━━━━━━" >> $FILE
+          echo "" >> $FILE
+
+          echo "$RESULT" >> $FILE
+          echo "" >> $FILE
+
+          echo "📊 TEST SUMMARY" >> $FILE
+          echo "✅ Passed  : ${PASSED:-0}" >> $FILE
+          echo "❌ Failed  : ${FAILED:-0}" >> $FILE
+          echo "⚪ Skipped : ${SKIPPED:-0}" >> $FILE
+          echo "⏱ Duration : ${DURATION:-0}s" >> $FILE
+          echo "" >> $FILE
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━" >> $FILE
+          echo "" >> $FILE
+
+          echo "❌ ERRORS" >> $FILE
+          echo "${ERRORS:-Tidak ada error}" >> $FILE
+          echo "" >> $FILE
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━" >> $FILE
+          echo "" >> $FILE
+
+          echo "🌍 ENVIRONMENT : $TEST_ENV" >> $FILE
+          echo "👤 TRIGGER     : ${{ github.actor }}" >> $FILE
+          echo "🌿 BRANCH      : ${{ github.ref_name }}" >> $FILE
+          echo "" >> $FILE
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━" >> $FILE
+          echo "" >> $FILE
+
+          echo "🔗 WORKFLOW URL" >> $FILE
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $FILE
 
           curl -s -X POST \
             "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            --data-urlencode text@telegram_message.txt
+            --data-urlencode text@$FILE
 
       - name: Mark Workflow Failed
         if: steps.playwright.outcome == 'failure'
