@@ -7,13 +7,7 @@ import { exportTestResult } from 'agentq-playwright/dist/testResult';
  */
 const AGENTQ_TOKEN = process.env.AGENTQ_TOKEN;
 const AGENTQ_TESTRUN_ID = process.env.AGENTQ_TESTRUN_ID;
-
-/**
- * =========================================================
- * SAFETY CHECK (CI ENV HARDENED)
- * =========================================================
- */
-const isCI = process.env.CI === 'true';
+const AGENTQ_ENABLE = process.env.AGENTQ_ENABLE === 'true';
 
 /**
  * =========================================================
@@ -37,7 +31,7 @@ const AGENTQ_TC_MAPPING: Record<string, string> = {
 
 /**
  * =========================================================
- * PUSH RESULT TO AGENTQ (CI SAFE VERSION)
+ * PUSH RESULT TO AGENTQ
  * =========================================================
  */
 export async function pushTestResultToAgentQ(
@@ -48,34 +42,21 @@ export async function pushTestResultToAgentQ(
 ): Promise<void> {
 
   /**
-   * DISABLE IF NOT ENABLED
+   * GLOBAL SWITCH
    */
-  if (process.env.AGENTQ_ENABLE !== 'true') return;
+  if (!AGENTQ_ENABLE) return;
 
   /**
-   * REQUIRED CHECK
+   * REQUIRED ENV CHECK
    */
   if (!AGENTQ_TOKEN || !AGENTQ_TESTRUN_ID) {
     console.warn('[AgentQ] Missing TOKEN or TESTRUN_ID');
     return;
   }
 
-  /**
-   * CI SAFETY GUARD
-   * (avoid triggering auth flow / cloudflare login)
-   */
-  if (isCI && !AGENTQ_TOKEN.startsWith('ey')) {
-    console.warn('[AgentQ] Invalid token format in CI');
-    return;
-  }
-
   try {
     const testCaseCode = testTitle.split(' - ')[0];
     const tcId = AGENTQ_TC_MAPPING[testCaseCode] ?? '0';
-
-    if (!AGENTQ_TC_MAPPING[testCaseCode]) {
-      console.warn(`[AgentQ] Unmapped TC: ${testCaseCode}`);
-    }
 
     const agentQStatus =
       status === 'passed'
@@ -84,9 +65,6 @@ export async function pushTestResultToAgentQ(
           ? 'skipped'
           : 'failed';
 
-    /**
-     * DIRECT API PUSH ONLY (NO LOGIN FLOW EVER)
-     */
     await exportTestResult(
       tcId,
       AGENTQ_TESTRUN_ID,
