@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, expect } from '../fixtures/agentq.fixture';
 import { LoginPage } from '../pages/login.page';
 import { DashboardPage } from '../pages/dashboard.page';
 import { users } from '../utils/users';

@@ -63,7 +63,7 @@ export default defineConfig({
   /**
    * Retry jika gagal
    */
-  retries: 2,
+  retries: 0,
 
   /**
    * Reporter

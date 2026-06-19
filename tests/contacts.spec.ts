@@ -1,4 +1,5 @@
-import { test, Page, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/agentq.fixture';
+import { Page } from '@playwright/test';
 import { createContact } from '../data/contact.data';
 import { users } from '../utils/users';
 import { ContactsPage } from '../pages/contacts.page';
