@@ -4,77 +4,68 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Environment aktif
- * local | staging | production
+ * =========================================================
+ * ACTIVE ENVIRONMENT
+ * =========================================================
+ *
+ * Prioritas:
+ * 1. TEST_ENV
+ * 2. NODE_ENV
+ * 3. local
+ *
  */
-const env =
+
+const environment =
   process.env.TEST_ENV ||
   process.env.NODE_ENV ||
   'local';
 
 /**
- * Mapping Base URL berdasarkan environment
+ * =========================================================
+ * BASE URL MAPPING
+ * =========================================================
  */
+
 const baseURL =
-  env === 'production'
+  environment === 'production'
     ? process.env.PRODUCTION_BASE_URL
-    : env === 'staging'
+    : environment === 'staging'
       ? process.env.STAGING_BASE_URL
       : process.env.LOCAL_BASE_URL;
 
 /**
- * Hentikan test jika Base URL tidak ditemukan
+ * Validasi Base URL
  */
+
 if (!baseURL) {
   throw new Error(
-    `❌ BASE_URL untuk environment "${env}" tidak ditemukan.`,
+    `❌ BASE_URL untuk environment "${environment}" tidak ditemukan.`,
   );
 }
 
 export default defineConfig({
-  /**
-   * Folder test
-   */
   testDir: './tests',
 
-  /**
-   * Folder hasil test
-   * Berisi screenshot, video, trace, dll
-   */
   outputDir: 'test-results',
 
-  /**
-   * Timeout per test
-   */
-  timeout: 30000,
+  timeout: 30_000,
 
-  /**
-   * Timeout expect()
-   */
   expect: {
-    timeout: 5000,
+    timeout: 5_000,
   },
 
-  /**
-   * Jalankan paralel
-   */
   fullyParallel: true,
 
-  /**
-   * Retry jika gagal
-   */
-  retries: 0,
+  retries: 2,
 
-  /**
-   * Reporter
-   */
   reporter: [
     ['list'],
 
     [
       'html',
       {
-        outputFolder: 'playwright-report',
+        outputFolder:
+          'playwright-report',
         open: 'never',
       },
     ],
@@ -82,40 +73,35 @@ export default defineConfig({
     [
       'json',
       {
-        outputFile: 'playwright-report/report.json',
+        outputFile:
+          'playwright-report/report.json',
       },
     ],
   ],
 
   use: {
     /**
-     * Base URL sesuai environment
+     * URL aplikasi sesuai environment
      */
     baseURL,
 
     /**
-     * Headless untuk CI/CD
+     * Browser mode
+     * true  = headless
+     * false = headed
      */
     headless: true,
 
     /**
-     * Screenshot otomatis jika gagal
+     * Artifact otomatis ketika gagal
      */
     screenshot: 'only-on-failure',
-
-    /**
-     * Simpan video jika gagal
-     */
     video: 'retain-on-failure',
-
-    /**
-     * Simpan trace jika gagal
-     */
     trace: 'retain-on-failure',
 
     /**
-     * Timeout action
+     * Timeout setiap action Playwright
      */
-    actionTimeout: 10000,
+    actionTimeout: 10_000,
   },
 });

@@ -1,21 +1,61 @@
-import { test as base } from '@playwright/test';
-import { pushTestResultToAgentQ } from '../helper/agentq-helper';
+import {
+  test as base,
+  expect,
+} from '@playwright/test';
 
-export const test = base;
+import { pushTestResultToAgentQ }
+  from '../helper/agentq-helper';
 
-test.afterEach(async ({}, testInfo) => {
-  const executionTime = testInfo.duration;
+export { expect };
 
-  const notes = testInfo.errors
-    .map((error) => error.message)
-    .join('\n');
+/**
+ * =========================================================
+ * CUSTOM PLAYWRIGHT FIXTURE
+ * =========================================================
+ *
+ * Fixture ini digunakan sebagai
+ * wrapper Playwright default.
+ *
+ * Tujuannya:
+ * - Menjalankan test normal
+ * - Mengirim hasil test otomatis
+ *   ke AgentQ setelah test selesai
+ *
+ */
 
-  await pushTestResultToAgentQ(
-    testInfo.title,
-    testInfo.status,
-    executionTime,
-    notes,
-  );
-});
+export const test = base.extend({});
 
-export { expect } from '@playwright/test';
+/**
+ * =========================================================
+ * AFTER EACH TEST
+ * =========================================================
+ *
+ * Akan berjalan otomatis setiap
+ * test selesai.
+ *
+ * Mengirim:
+ * - Nama test
+ * - Status test
+ * - Durasi test
+ * - Error message
+ *
+ */
+
+test.afterEach(
+  async ({}, testInfo) => {
+    const errors =
+      testInfo.errors
+        .map(
+          error =>
+            error.message || '',
+        )
+        .join('\n');
+
+    await pushTestResultToAgentQ(
+      testInfo.title,
+      testInfo.status,
+      testInfo.duration,
+      errors,
+    );
+  },
+);

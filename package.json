@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "agentq-playwright": "^1.0.67",
+    "axios": "^1.18.0",
     "dotenv": "^17.4.2"
   }
 }
