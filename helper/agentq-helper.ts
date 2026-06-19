@@ -6,8 +6,14 @@ import { exportTestResult } from 'agentq-playwright/dist/testResult';
  * =========================================================
  */
 const AGENTQ_TOKEN = process.env.AGENTQ_TOKEN;
-const AGENTQ_PROJECT_ID = process.env.AGENTQ_PROJECT_ID;
 const AGENTQ_TESTRUN_ID = process.env.AGENTQ_TESTRUN_ID;
+
+/**
+ * =========================================================
+ * SAFETY CHECK (CI ENV HARDENED)
+ * =========================================================
+ */
+const isCI = process.env.CI === 'true';
 
 /**
  * =========================================================
@@ -17,7 +23,6 @@ const AGENTQ_TESTRUN_ID = process.env.AGENTQ_TESTRUN_ID;
 const AGENTQ_TC_MAPPING: Record<string, string> = {
   TC_LOGIN_001: '1',
   TC_LOGIN_002: '2',
-
   TC_REGISTER_001: '3',
   TC_REGISTER_002: '4',
   TC_REGISTER_003: '5',
@@ -25,7 +30,6 @@ const AGENTQ_TC_MAPPING: Record<string, string> = {
   TC_REGISTER_005: '7',
   TC_REGISTER_006: '8',
   TC_REGISTER_007: '9',
-
   TC_CONTACT_001: '10',
   TC_CONTACT_002: '11',
   TC_CONTACT_003: '12',
@@ -33,7 +37,7 @@ const AGENTQ_TC_MAPPING: Record<string, string> = {
 
 /**
  * =========================================================
- * PUSH RESULT TO AGENTQ (NO LOGIN, TOKEN ONLY)
+ * PUSH RESULT TO AGENTQ (CI SAFE VERSION)
  * =========================================================
  */
 export async function pushTestResultToAgentQ(
@@ -44,15 +48,24 @@ export async function pushTestResultToAgentQ(
 ): Promise<void> {
 
   /**
-   * GLOBAL SWITCH
+   * DISABLE IF NOT ENABLED
    */
   if (process.env.AGENTQ_ENABLE !== 'true') return;
 
   /**
-   * REQUIRED ENV CHECK
+   * REQUIRED CHECK
    */
   if (!AGENTQ_TOKEN || !AGENTQ_TESTRUN_ID) {
     console.warn('[AgentQ] Missing TOKEN or TESTRUN_ID');
+    return;
+  }
+
+  /**
+   * CI SAFETY GUARD
+   * (avoid triggering auth flow / cloudflare login)
+   */
+  if (isCI && !AGENTQ_TOKEN.startsWith('ey')) {
+    console.warn('[AgentQ] Invalid token format in CI');
     return;
   }
 
@@ -61,7 +74,7 @@ export async function pushTestResultToAgentQ(
     const tcId = AGENTQ_TC_MAPPING[testCaseCode] ?? '0';
 
     if (!AGENTQ_TC_MAPPING[testCaseCode]) {
-      console.warn(`[AgentQ] Unmapped TC: ${testCaseCode} -> fallback 0`);
+      console.warn(`[AgentQ] Unmapped TC: ${testCaseCode}`);
     }
 
     const agentQStatus =
@@ -72,9 +85,7 @@ export async function pushTestResultToAgentQ(
           : 'failed';
 
     /**
-     * 🔥 IMPORTANT FIX:
-     * Tidak ada login endpoint dipanggil sama sekali
-     * hanya push result via token
+     * DIRECT API PUSH ONLY (NO LOGIN FLOW EVER)
      */
     await exportTestResult(
       tcId,

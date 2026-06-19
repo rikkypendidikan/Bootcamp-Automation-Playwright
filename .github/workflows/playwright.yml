@@ -24,6 +24,7 @@ jobs:
       options: --user root
 
     env:
+      CI: true
       TEST_ENV: production
 
       PRODUCTION_BASE_URL: ${{ secrets.BASE_URL }}
